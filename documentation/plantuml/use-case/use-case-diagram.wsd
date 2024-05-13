@@ -1,0 +1,17 @@
+@startuml UseCaseDiagram
+
+actor Client
+
+usecase SignIn
+usecase SignUp
+usecase GeneratePassword
+usecase ManipulatePassword
+usecase ValidateHash
+
+Client -- SignIn
+Client -- SignUp
+Client -- GeneratePassword
+Client -- ManipulatePassword
+Client -- ValidateHash
+
+@enduml
