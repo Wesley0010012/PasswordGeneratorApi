@@ -20,6 +20,8 @@ services:
       MYSQL_DATABASE: password_generator
       MYSQL_USER: passgenuser
       MYSQL_PASSWORD: abc12345
+    networks:
+      - password_network
 
 networks:
   password_network:
