@@ -45,7 +45,9 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi"
-        ]
+        ],
+        "project:clear": "php artisan cache:clear && php artisan optimize && composer i",
+        "test:clear": "composer run project:clear && php artisan test"
     },
     "extra": {
         "laravel": {
