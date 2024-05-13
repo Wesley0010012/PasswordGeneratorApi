@@ -1,0 +1,26 @@
+version: '2'
+services:
+  password_api:
+    container_name: 'password_generator_api'
+    build: 'web'
+    ports:
+      - 8080:80
+    networks: 
+        - password_network
+    volumes:
+      - './web/www/production:/var/www/html/production'
+    depends_on:
+      - password_database
+
+  password_database:
+    container_name: 'password_generator_database'
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: abc12345
+      MYSQL_DATABASE: password_generator
+      MYSQL_USER: passgenuser
+      MYSQL_PASSWORD: abc12345
+
+networks:
+  password_network:
+    driver: bridge
