@@ -17,6 +17,8 @@ RUN php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
 COPY ./laravel.conf /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite
 
+RUN apt-get install -y php-dom php-json php-mbstring php-tokenizer php-xml php-xmlwriter
+
 EXPOSE 80
 RUN service apache2 restart
 CMD /usr/sbin/apachectl -D FOREGROUND
