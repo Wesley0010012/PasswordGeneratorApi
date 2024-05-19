@@ -52,9 +52,9 @@ class SignUpController extends Controller
 
             $accountModel = $this->addAccount->add(new AddAccountModel($name, $email, $password));
 
-            $this->tokenGenerator->generate($accountModel);
+            $token = $this->tokenGenerator->generate($accountModel);
 
-            return new HttpResponse();
+            return HttpHelpers::success($token);
         } catch (Throwable $e) {
             return HttpHelpers::internalServerError();
         }

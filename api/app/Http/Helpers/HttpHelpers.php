@@ -25,4 +25,13 @@ abstract class HttpHelpers
 
         return $httpResponse;
     }
+
+    public static function success(mixed $response): HttpResponse
+    {
+        $httpResponse = new HttpResponse();
+        $httpResponse->setStatusCode(200);
+        $httpResponse->setBody($response);
+
+        return $httpResponse;
+    }
 }
