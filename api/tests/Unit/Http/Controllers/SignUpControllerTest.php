@@ -4,6 +4,7 @@ namespace Tests\Unit\Http\Controllers;
 
 use App\Domain\Models\AccountModel;
 use App\Domain\Models\AddAccountModel;
+use App\Domain\Models\FindAccountModel;
 use App\Domain\UseCases\AddAccount;
 use App\Domain\UseCases\CheckAccount;
 use App\Exceptions\AccountExistsError;
@@ -50,6 +51,15 @@ class SignUpControllerTest extends TestCase
         $accountModel->setPassword("valid_password");
 
         return $accountModel;
+    }
+
+    private function mockFindAccountModel(): FindAccountModel
+    {
+        return new FindAccountModel(
+            "any_name",
+            "any_email",
+            "any_password"
+        );
     }
 
     public function testEnsureCorrectInstance()
@@ -325,7 +335,8 @@ class SignUpControllerTest extends TestCase
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 
-    public function testShouldReturn500IfCheckAccountAccountThrows() {
+    public function testShouldReturn500IfCheckAccountAccountThrows()
+    {
         $this->emailValidatorStub->method('validate')
             ->willReturn(true);
 
@@ -356,6 +367,35 @@ class SignUpControllerTest extends TestCase
         $this->assertEquals(500, $httpResponse->getStatusCode());
         $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
+
+    public function testShouldCheckAccountHaveBeenCalledWithCorrectFindAccountModel()
+    {
+        $this->emailValidatorStub->method('validate')
+            ->willReturn(true);
+
+        $this->addAccountStub->method('add')
+            ->willReturn($this->mockAccountModel());
+
+        $this->tokenGeneratorStub->method('generate')
+            ->willThrowException(new Error());
+
+        $this->checkAccountStub->expects($this->once())
+            ->method('verifyIfExists')
+            ->with($this->mockFindAccountModel());
+
+        $httpRequest = new HttpRequest();
+
+        $body = [
+            'name' => 'any_name',
+            'email' => 'any_email',
+            'password' => 'any_password',
+            'passwordConfirmation' => 'any_password'
+        ];
+
+        $httpRequest->setBody($body);
+
+        $this->sut->handle($httpRequest);
     }
 
     public function testShouldReturn500IfTokenGeneratorThrows()
