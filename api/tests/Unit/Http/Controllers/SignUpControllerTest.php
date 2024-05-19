@@ -325,6 +325,39 @@ class SignUpControllerTest extends TestCase
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 
+    public function testShouldReturn500IfCheckAccountAccountThrows() {
+        $this->emailValidatorStub->method('validate')
+            ->willReturn(true);
+
+        $this->addAccountStub->method('add')
+            ->willReturn($this->mockAccountModel());
+
+        $this->tokenGeneratorStub->method('generate')
+            ->willThrowException(new Error());
+
+        $this->checkAccountStub->method('verifyIfExists')
+            ->willThrowException(new Error());
+
+        $httpRequest = new HttpRequest();
+
+        $body = [
+            'name' => 'any_name',
+            'email' => 'any_email',
+            'password' => 'any_password',
+            'passwordConfirmation' => 'any_password'
+        ];
+
+        $httpRequest->setBody($body);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new InternalServerError();
+
+        $this->assertEquals(500, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
+
     public function testShouldReturn500IfTokenGeneratorThrows()
     {
         $this->emailValidatorStub->method('validate')
