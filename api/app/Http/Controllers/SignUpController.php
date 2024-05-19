@@ -10,13 +10,15 @@ use App\Http\Helpers\HttpHelpers;
 use App\Http\Protocols\EmailValidator;
 use App\Http\Protocols\HttpRequest;
 use App\Http\Protocols\HttpResponse;
+use App\Http\Protocols\TokenGenerator;
 use Throwable;
 
 class SignUpController extends Controller
 {
     public function __construct(
         private EmailValidator $emailValidator,
-        private AddAccount $addAccount
+        private AddAccount $addAccount,
+        private TokenGenerator $tokenGenerator
     ) {
     }
 
@@ -48,7 +50,9 @@ class SignUpController extends Controller
                 return HttpHelpers::badRequest(new InvalidParamError('passwordConfirmation'));
             }
 
-            $this->addAccount->add(new AddAccountModel($name, $email, $password));
+            $accountModel = $this->addAccount->add(new AddAccountModel($name, $email, $password));
+
+            $this->tokenGenerator->generate($accountModel);
 
             return new HttpResponse();
         } catch (Throwable $e) {
