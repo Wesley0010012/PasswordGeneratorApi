@@ -13,8 +13,12 @@ class SignUpController extends Controller
     {
         $data = $httpRequest->getBody();
 
-        if (!$data['name']) {
-            return HttpHelpers::badRequest(new MissingParamError('name'));
+        $params = ['name', 'email', 'password', 'passwordConfirmation'];
+
+        foreach ($params as $param) {
+            if (!$data[$param]) {
+                return HttpHelpers::badRequest(new MissingParamError($param));
+            }
         }
 
         return new HttpResponse();
