@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Http\Controllers;
 
+use App\Domain\Models\AddAccountModel;
 use App\Domain\UseCases\AddAccount;
 use App\Exceptions\InternalServerError;
 use App\Exceptions\InvalidParamError;
@@ -244,5 +245,28 @@ class SignUpControllerTest extends TestCase
         $this->assertEquals(500, $httpResponse->getStatusCode());
         $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
+
+    public function testShouldEmailValidatorHaveBeenCalledWithCorrectAddAccountModel()
+    {
+        $this->emailValidatorStub->method('validate')
+            ->willReturn(true);
+
+        $httpRequest = new HttpRequest();
+
+        $body = [
+            'name' => 'any_name',
+            'email' => 'any_email',
+            'password' => 'any_password',
+            'passwordConfirmation' => 'any_password'
+        ];
+
+        $this->addAccountStub->expects($this->once())
+            ->method('add')
+            ->with(new AddAccountModel($body['name'], $body['email'], $body['password']));
+
+        $httpRequest->setBody($body);
+
+        $this->sut->handle($httpRequest);
     }
 }
