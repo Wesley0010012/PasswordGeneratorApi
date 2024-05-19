@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\MissingParamError;
+use App\Http\Helpers\HttpHelpers;
 use App\Http\Protocols\HttpRequest;
 use App\Http\Protocols\HttpResponse;
 
@@ -12,11 +14,7 @@ class SignUpController extends Controller
         $data = $httpRequest->getBody();
 
         if (!$data['name']) {
-            $httpResponse = new HttpResponse();
-            $httpResponse->setStatusCode(400);
-            $httpResponse->setBody('missing param: name');
-
-            return $httpResponse;
+            return HttpHelpers::badRequest(new MissingParamError('name'));
         }
 
         return new HttpResponse();

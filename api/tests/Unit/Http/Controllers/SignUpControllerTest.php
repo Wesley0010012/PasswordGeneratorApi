@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Http\Controllers;
 
+use App\Exceptions\MissingParamError;
 use App\Http\Controllers\SignUpController;
 use App\Http\Protocols\HttpRequest;
 use Tests\TestCase;
@@ -35,7 +36,10 @@ class SignUpControllerTest extends TestCase
 
         $httpResponse = $this->sut->handle($httpRequest);
 
+        $error = new MissingParamError('name');
+
         $this->assertEquals(400, $httpResponse->getStatusCode());
-        $this->assertEquals('missing param: name', $httpResponse->getBody());
+        $this->assertInstanceOf(MissingParamError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 }
