@@ -1,0 +1,69 @@
+@startuml SignUpClassDiagram
+title SignUp Class Diagram
+
+'Objects
+
+abstract Controller
+interface EmailValidator
+interface AddAccount
+class SignUpController
+class EmailValidatorAdapter
+
+class Router
+class RouterAdapter <<middleware>>
+class SignUpFactory <<middleware>>
+
+class HttpRequest
+class HttpResponse
+
+class DbAddAccount
+interface AddAccountRepository
+interface Encrypter
+
+class BCrypterEncrypter
+class MysqlAccountRepository
+
+class AddAccountModel <<model>>
+class AccountModel <<model>>
+
+
+'Actions
+
+SignUpController ..|> Controller
+
+Router -> RouterAdapter
+RouterAdapter ..> Controller
+RouterAdapter ..> HttpRequest
+RouterAdapter ..> HttpResponse
+
+SignUpFactory -> SignUpController
+SignUpFactory -> EmailValidatorAdapter
+
+Router -> SignUpFactory
+
+Controller -> HttpRequest
+Controller -> HttpResponse
+
+Controller ..> EmailValidator
+Controller ..> AddAccount
+EmailValidatorAdapter ..|> EmailValidator
+
+DbAddAccount ..|> AddAccount
+DbAddAccount ..> Encrypter
+DbAddAccount ..> AddAccountRepository
+
+BCrypterEncrypter ..|> Encrypter
+MysqlAccountRepository ..|> AddAccountRepository
+
+AddAccountRepository ..> AddAccountModel
+
+DbAddAccount -> AddAccountModel
+DbAddAccount ..> AccountModel
+
+MysqlAccountRepository --> AccountModel
+
+SignUpFactory --> BCrypterEncrypter
+SignUpFactory --> MysqlAccountRepository
+SignUpFactory --> DbAddAccount
+
+@enduml
