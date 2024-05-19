@@ -4,6 +4,7 @@ namespace Tests\Unit\Data;
 
 use App\Data\Protocols\CheckAccountRepository;
 use App\Data\UseCases\DbCheckAccount;
+use Error;
 use Tests\TestCase;
 
 class DbCheckAccountTest extends TestCase
@@ -36,5 +37,17 @@ class DbCheckAccountTest extends TestCase
         $result = $this->sut->verifyIfExists($email);
 
         $this->assertFalse($result);
+    }
+
+    public function testShouldThrowsIfDbCheckAccountRepositorythrows()
+    {
+        $this->expectException(Error::class);
+
+        $email = 'any_email@email.com';
+
+        $this->checkAccountRepositoryStub->method('findAccountByEmail')
+            ->willThrowException(new Error());
+
+        $this->sut->verifyIfExists($email);
     }
 }
