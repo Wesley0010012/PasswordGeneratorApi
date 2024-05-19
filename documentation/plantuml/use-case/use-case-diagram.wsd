@@ -1,4 +1,5 @@
-@startuml UseCaseDiagram
+@startuml APIUseCaseDiagram
+title Api UseCase Diagram
 
 actor Client
 
