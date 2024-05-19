@@ -4,6 +4,7 @@ namespace Tests\Unit\Data;
 
 use App\Data\Protocols\CheckAccountRepository;
 use App\Data\UseCases\DbCheckAccount;
+use App\Domain\Models\AccountModel;
 use Error;
 use Tests\TestCase;
 
@@ -60,5 +61,17 @@ class DbCheckAccountTest extends TestCase
             ->with($email);
 
         $this->sut->verifyIfExists($email);
+    }
+
+    public function testShouldReturnTrueIfDbCheckAccountRepositoryReturnsAnAccountModel()
+    {
+        $email = 'any_email@email.com';
+
+        $this->checkAccountRepositoryStub->method('findAccountByEmail')
+            ->willReturn(new AccountModel());
+
+        $result = $this->sut->verifyIfExists($email);
+
+        $this->assertTrue($result);
     }
 }
