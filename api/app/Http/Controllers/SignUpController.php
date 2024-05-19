@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Models\AddAccountModel;
+use App\Domain\UseCases\AddAccount;
 use App\Exceptions\InvalidParamError;
 use App\Exceptions\MissingParamError;
 use App\Http\Helpers\HttpHelpers;
@@ -12,8 +14,10 @@ use Throwable;
 
 class SignUpController extends Controller
 {
-    public function __construct(private EmailValidator $emailValidator)
-    {
+    public function __construct(
+        private EmailValidator $emailValidator,
+        private AddAccount $addAccount
+    ) {
     }
 
     public function handle(HttpRequest $httpRequest): HttpResponse
@@ -43,6 +47,8 @@ class SignUpController extends Controller
             if ($password !== $passwordConfirmation) {
                 return HttpHelpers::badRequest(new InvalidParamError('passwordConfirmation'));
             }
+
+            $this->addAccount->add(new AddAccountModel($name, $email, $password));
 
             return new HttpResponse();
         } catch (Throwable $e) {
