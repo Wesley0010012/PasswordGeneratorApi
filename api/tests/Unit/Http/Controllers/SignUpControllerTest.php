@@ -86,4 +86,26 @@ class SignUpControllerTest extends TestCase
         $this->assertInstanceOf(MissingParamError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
+
+    public function testShouldReturn400IfNoPasswordConfirmationWasProvided()
+    {
+        $httpRequest = new HttpRequest();
+
+        $body = [
+            'name' => 'any_name',
+            'email' => 'any_email',
+            'password' => 'any_password',
+            'passwordConfirmation' => ''
+        ];
+
+        $httpRequest->setBody($body);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new MissingParamError('passwordConfirmation');
+
+        $this->assertEquals(400, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(MissingParamError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
 }
