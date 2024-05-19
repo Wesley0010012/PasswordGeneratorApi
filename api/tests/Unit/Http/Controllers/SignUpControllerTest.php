@@ -344,4 +344,34 @@ class SignUpControllerTest extends TestCase
 
         $this->sut->handle($httpRequest);
     }
+
+    public function testShouldReturn200OnSuccess()
+    {
+        $token = "VALID_TOKEN";
+
+        $this->emailValidatorStub->method('validate')
+            ->willReturn(true);
+
+        $this->addAccountStub->method('add')
+            ->willReturn($this->mockAccountModel());
+
+        $this->tokenGeneratorStub->method('generate')
+            ->willReturn($token);
+
+        $httpRequest = new HttpRequest();
+
+        $body = [
+            'name' => 'valid_name',
+            'email' => 'valid_email',
+            'password' => 'valid_password',
+            'passwordConfirmation' => 'valid_password'
+        ];
+
+        $httpRequest->setBody($body);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $this->assertEquals(200, $httpResponse->getStatusCode());
+        $this->assertEquals($token, $httpResponse->getBody());
+    }
 }
