@@ -25,4 +25,11 @@ class EmailValidatorAdapterTest extends TestCase
 
         $this->assertFalse($result);
     }
+
+    public function testEnsureReturnsTrueIfValidEmail()
+    {
+        $result = $this->sut->validate("valid.email@email.com");
+
+        $this->assertTrue($result);
+    }
 }
