@@ -49,4 +49,15 @@ class DbAddAccountTest extends TestCase
 
         $this->sut->add($data);
     }
+
+    public function testShouldAddAccountRepositoryHaveBeenCalledWithWithCorrectAddAccountModel()
+    {
+        $data = $this->mockAddAccountModel();
+
+        $this->addAccountRepositoryStub->expects($this->once())
+            ->method('add')
+            ->with($data);
+
+        $this->sut->add($data);
+    }
 }
