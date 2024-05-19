@@ -309,9 +309,6 @@ class SignUpControllerTest extends TestCase
         $this->addAccountStub->method('add')
             ->willReturn($this->mockAccountModel());
 
-        $this->tokenGeneratorStub->method('generate')
-            ->willThrowException(new Error());
-
         $this->checkAccountStub->method('verifyIfExists')
             ->willReturn(true);
 
@@ -343,9 +340,6 @@ class SignUpControllerTest extends TestCase
         $this->addAccountStub->method('add')
             ->willReturn($this->mockAccountModel());
 
-        $this->tokenGeneratorStub->method('generate')
-            ->willThrowException(new Error());
-
         $this->checkAccountStub->method('verifyIfExists')
             ->willThrowException(new Error());
 
@@ -369,20 +363,13 @@ class SignUpControllerTest extends TestCase
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 
-    public function testShouldCheckAccountHaveBeenCalledWithCorrectFindAccountModel()
+    public function testShouldCheckAccountHaveBeenCalledWithCorrectEmail()
     {
         $this->emailValidatorStub->method('validate')
             ->willReturn(true);
 
         $this->addAccountStub->method('add')
             ->willReturn($this->mockAccountModel());
-
-        $this->tokenGeneratorStub->method('generate')
-            ->willThrowException(new Error());
-
-        $this->checkAccountStub->expects($this->once())
-            ->method('verifyIfExists')
-            ->with($this->mockFindAccountModel());
 
         $httpRequest = new HttpRequest();
 
@@ -392,6 +379,10 @@ class SignUpControllerTest extends TestCase
             'password' => 'any_password',
             'passwordConfirmation' => 'any_password'
         ];
+
+        $this->checkAccountStub->expects($this->once())
+            ->method('verifyIfExists')
+            ->with($body['email']);
 
         $httpRequest->setBody($body);
 

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Models\AddAccountModel;
-use App\Domain\Models\FindAccountModel;
 use App\Domain\UseCases\AddAccount;
 use App\Domain\UseCases\CheckAccount;
 use App\Exceptions\AccountExistsError;
@@ -54,7 +53,7 @@ class SignUpController extends Controller
                 return HttpHelpers::badRequest(new InvalidParamError('passwordConfirmation'));
             }
 
-            if ($this->checkAccount->verifyIfExists(new FindAccountModel($name, $email, $password))) {
+            if ($this->checkAccount->verifyIfExists($email)) {
                 return HttpHelpers::badRequest(new AccountExistsError($email));
             }
 
