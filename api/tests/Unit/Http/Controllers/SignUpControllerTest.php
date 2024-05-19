@@ -186,4 +186,29 @@ class SignUpControllerTest extends TestCase
 
         $this->sut->handle($httpRequest);
     }
+
+    public function testShouldReturn400IfInvalidPasswordConfirmationWasProvided()
+    {
+        $httpRequest = new HttpRequest();
+
+        $this->emailValidatorStub->method('validate')
+            ->willReturn(true);
+
+        $body = [
+            'name' => 'any_name',
+            'email' => 'any_email',
+            'password' => 'any_password',
+            'passwordConfirmation' => 'invalid_password'
+        ];
+
+        $httpRequest->setBody($body);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new InvalidParamError('passwordConfirmation');
+
+        $this->assertEquals(400, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(InvalidParamError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
 }
