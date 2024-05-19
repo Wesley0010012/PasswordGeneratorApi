@@ -2,8 +2,10 @@
 
 namespace Tests\Unit\Http\Controllers;
 
+use App\Exceptions\InvalidParamError;
 use App\Exceptions\MissingParamError;
 use App\Http\Controllers\SignUpController;
+use App\Http\Protocols\EmailValidator;
 use App\Http\Protocols\HttpRequest;
 use Tests\TestCase;
 
@@ -11,9 +13,13 @@ class SignUpControllerTest extends TestCase
 {
     private SignUpController $sut;
 
+    private EmailValidator $emailValidatorStub;
+
     public function setUp(): void
     {
-        $this->sut = new SignUpController();
+        $this->emailValidatorStub = $this->createMock(EmailValidator::class);
+
+        $this->sut = new SignUpController($this->emailValidatorStub);
     }
 
     public function testEnsureCorrectInstance()
@@ -106,6 +112,31 @@ class SignUpControllerTest extends TestCase
 
         $this->assertEquals(400, $httpResponse->getStatusCode());
         $this->assertInstanceOf(MissingParamError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
+
+    public function testShouldReturn400IfInvalidEmailWasProvided()
+    {
+        $this->emailValidatorStub->method('validate')
+            ->willReturn(false);
+
+        $httpRequest = new HttpRequest();
+
+        $body = [
+            'name' => 'any_name',
+            'email' => 'any_email',
+            'password' => 'any_password',
+            'passwordConfirmation' => 'any_password'
+        ];
+
+        $httpRequest->setBody($body);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new InvalidParamError('email');
+
+        $this->assertEquals(400, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(InvalidParamError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 }
