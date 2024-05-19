@@ -60,4 +60,20 @@ class DbAddAccountTest extends TestCase
 
         $this->sut->add($data);
     }
+
+    public function testShouldReturnAnAccountModelOnSuccess()
+    {
+        $data = $this->mockAddAccountModel();
+
+        $this->addAccountRepositoryStub->method('add')
+            ->willReturn(9999);
+
+
+        $result = $this->sut->add($data);
+
+        $this->assertIsNumeric(9999, $result->getId());
+        $this->assertEquals($data->getName(), $result->getName());
+        $this->assertEquals($data->getEmail(), $result->getEmail());
+        $this->assertEquals($data->getPassword(), $result->getPassword());
+    }
 }
