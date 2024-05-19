@@ -40,6 +40,10 @@ class SignUpController extends Controller
                 return HttpHelpers::badRequest(new InvalidParamError('email'));
             }
 
+            if ($password !== $passwordConfirmation) {
+                return HttpHelpers::badRequest(new InvalidParamError('passwordConfirmation'));
+            }
+
             return new HttpResponse();
         } catch (Throwable $e) {
             return HttpHelpers::internalServerError();
