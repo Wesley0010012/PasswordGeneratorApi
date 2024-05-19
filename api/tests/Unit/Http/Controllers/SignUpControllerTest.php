@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Http\Controllers;
 
+use App\Domain\Models\AccountModel;
 use App\Domain\Models\AddAccountModel;
 use App\Domain\UseCases\AddAccount;
 use App\Exceptions\InternalServerError;
@@ -10,6 +11,7 @@ use App\Exceptions\MissingParamError;
 use App\Http\Controllers\SignUpController;
 use App\Http\Protocols\EmailValidator;
 use App\Http\Protocols\HttpRequest;
+use App\Http\Protocols\TokenGenerator;
 use Error;
 use Tests\TestCase;
 
@@ -19,16 +21,30 @@ class SignUpControllerTest extends TestCase
 
     private EmailValidator $emailValidatorStub;
     private AddAccount $addAccountStub;
+    private TokenGenerator $tokenGeneratorStub;
 
     public function setUp(): void
     {
         $this->emailValidatorStub = $this->createMock(EmailValidator::class);
         $this->addAccountStub = $this->createMock(AddAccount::class);
+        $this->tokenGeneratorStub = $this->createMock(TokenGenerator::class);
 
         $this->sut = new SignUpController(
             $this->emailValidatorStub,
-            $this->addAccountStub
+            $this->addAccountStub,
+            $this->tokenGeneratorStub
         );
+    }
+
+    private function mockAccountModel(): AccountModel
+    {
+        $accountModel =  new AccountModel();
+        $accountModel->setId(9999);
+        $accountModel->setName("valid_name");
+        $accountModel->setEmail("valid_email");
+        $accountModel->setPassword("valid_password");
+
+        return $accountModel;
     }
 
     public function testEnsureCorrectInstance()
@@ -268,5 +284,36 @@ class SignUpControllerTest extends TestCase
         $httpRequest->setBody($body);
 
         $this->sut->handle($httpRequest);
+    }
+
+    public function testShouldReturn500IfTokenGeneratorThrows()
+    {
+        $this->emailValidatorStub->method('validate')
+            ->willReturn(true);
+
+        $this->addAccountStub->method('add')
+            ->willReturn($this->mockAccountModel());
+
+        $this->tokenGeneratorStub->method('generate')
+            ->willThrowException(new Error());
+
+        $httpRequest = new HttpRequest();
+
+        $body = [
+            'name' => 'any_name',
+            'email' => 'any_email',
+            'password' => 'any_password',
+            'passwordConfirmation' => 'any_password'
+        ];
+
+        $httpRequest->setBody($body);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new InternalServerError();
+
+        $this->assertEquals(500, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 }
