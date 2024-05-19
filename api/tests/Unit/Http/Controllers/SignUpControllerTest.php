@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Http\Controllers;
 
+use App\Domain\UseCases\AddAccount;
 use App\Exceptions\InternalServerError;
 use App\Exceptions\InvalidParamError;
 use App\Exceptions\MissingParamError;
@@ -16,12 +17,17 @@ class SignUpControllerTest extends TestCase
     private SignUpController $sut;
 
     private EmailValidator $emailValidatorStub;
+    private AddAccount $addAccountStub;
 
     public function setUp(): void
     {
         $this->emailValidatorStub = $this->createMock(EmailValidator::class);
+        $this->addAccountStub = $this->createMock(AddAccount::class);
 
-        $this->sut = new SignUpController($this->emailValidatorStub);
+        $this->sut = new SignUpController(
+            $this->emailValidatorStub,
+            $this->addAccountStub
+        );
     }
 
     public function testEnsureCorrectInstance()
@@ -209,6 +215,34 @@ class SignUpControllerTest extends TestCase
 
         $this->assertEquals(400, $httpResponse->getStatusCode());
         $this->assertInstanceOf(InvalidParamError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
+
+    public function testShouldeReturn500IfAddAccountThrows()
+    {
+        $this->emailValidatorStub->method('validate')
+            ->willReturn(true);
+
+        $this->addAccountStub->method('add')
+            ->willThrowException(new Error());
+
+        $httpRequest = new HttpRequest();
+
+        $body = [
+            'name' => 'any_name',
+            'email' => 'any_email',
+            'password' => 'any_password',
+            'passwordConfirmation' => 'any_password'
+        ];
+
+        $httpRequest->setBody($body);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new InternalServerError();
+
+        $this->assertEquals(500, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 }
