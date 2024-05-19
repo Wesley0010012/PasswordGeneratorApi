@@ -316,4 +316,32 @@ class SignUpControllerTest extends TestCase
         $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
+
+    public function testShouldTokenGeneratorValidatorHaveBeenCalledWithCorrectAccountModel()
+    {
+        $accountModel = $this->mockAccountModel();
+
+        $this->emailValidatorStub->method('validate')
+            ->willReturn(true);
+
+        $this->addAccountStub->method('add')
+            ->willReturn($accountModel);
+
+        $this->tokenGeneratorStub->expects($this->once())
+            ->method('generate')
+            ->with($accountModel);
+
+        $httpRequest = new HttpRequest();
+
+        $body = [
+            'name' => 'any_name',
+            'email' => 'any_email',
+            'password' => 'any_password',
+            'passwordConfirmation' => 'any_password'
+        ];
+
+        $httpRequest->setBody($body);
+
+        $this->sut->handle($httpRequest);
+    }
 }
