@@ -4,7 +4,10 @@ namespace Tests\Unit\Http\Controllers;
 
 use App\Domain\Models\AccountModel;
 use App\Domain\Models\AddAccountModel;
+use App\Domain\Models\FindAccountModel;
 use App\Domain\UseCases\AddAccount;
+use App\Domain\UseCases\CheckAccount;
+use App\Exceptions\AccountExistsError;
 use App\Exceptions\InternalServerError;
 use App\Exceptions\InvalidParamError;
 use App\Exceptions\MissingParamError;
@@ -21,16 +24,19 @@ class SignUpControllerTest extends TestCase
 
     private EmailValidator $emailValidatorStub;
     private AddAccount $addAccountStub;
+    private CheckAccount $checkAccountStub;
     private TokenGenerator $tokenGeneratorStub;
 
     public function setUp(): void
     {
         $this->emailValidatorStub = $this->createMock(EmailValidator::class);
+        $this->checkAccountStub = $this->createMock(CheckAccount::class);
         $this->addAccountStub = $this->createMock(AddAccount::class);
         $this->tokenGeneratorStub = $this->createMock(TokenGenerator::class);
 
         $this->sut = new SignUpController(
             $this->emailValidatorStub,
+            $this->checkAccountStub,
             $this->addAccountStub,
             $this->tokenGeneratorStub
         );
@@ -45,6 +51,15 @@ class SignUpControllerTest extends TestCase
         $accountModel->setPassword("valid_password");
 
         return $accountModel;
+    }
+
+    private function mockFindAccountModel(): FindAccountModel
+    {
+        return new FindAccountModel(
+            "any_name",
+            "any_email",
+            "any_password"
+        );
     }
 
     public function testEnsureCorrectInstance()
@@ -280,6 +295,94 @@ class SignUpControllerTest extends TestCase
         $this->addAccountStub->expects($this->once())
             ->method('add')
             ->with(new AddAccountModel($body['name'], $body['email'], $body['password']));
+
+        $httpRequest->setBody($body);
+
+        $this->sut->handle($httpRequest);
+    }
+
+    public function testShouldReturn400IfAccountsExists()
+    {
+        $this->emailValidatorStub->method('validate')
+            ->willReturn(true);
+
+        $this->addAccountStub->method('add')
+            ->willReturn($this->mockAccountModel());
+
+        $this->checkAccountStub->method('verifyIfExists')
+            ->willReturn(true);
+
+        $httpRequest = new HttpRequest();
+
+        $body = [
+            'name' => 'any_name',
+            'email' => 'any_email',
+            'password' => 'any_password',
+            'passwordConfirmation' => 'any_password'
+        ];
+
+        $httpRequest->setBody($body);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new AccountExistsError($body['email']);
+
+        $this->assertEquals(400, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(AccountExistsError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
+
+    public function testShouldReturn500IfCheckAccountAccountThrows()
+    {
+        $this->emailValidatorStub->method('validate')
+            ->willReturn(true);
+
+        $this->addAccountStub->method('add')
+            ->willReturn($this->mockAccountModel());
+
+        $this->checkAccountStub->method('verifyIfExists')
+            ->willThrowException(new Error());
+
+        $httpRequest = new HttpRequest();
+
+        $body = [
+            'name' => 'any_name',
+            'email' => 'any_email',
+            'password' => 'any_password',
+            'passwordConfirmation' => 'any_password'
+        ];
+
+        $httpRequest->setBody($body);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new InternalServerError();
+
+        $this->assertEquals(500, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
+
+    public function testShouldCheckAccountHaveBeenCalledWithCorrectEmail()
+    {
+        $this->emailValidatorStub->method('validate')
+            ->willReturn(true);
+
+        $this->addAccountStub->method('add')
+            ->willReturn($this->mockAccountModel());
+
+        $httpRequest = new HttpRequest();
+
+        $body = [
+            'name' => 'any_name',
+            'email' => 'any_email',
+            'password' => 'any_password',
+            'passwordConfirmation' => 'any_password'
+        ];
+
+        $this->checkAccountStub->expects($this->once())
+            ->method('verifyIfExists')
+            ->with($body['email']);
 
         $httpRequest->setBody($body);
 

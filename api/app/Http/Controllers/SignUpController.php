@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Domain\Models\AddAccountModel;
 use App\Domain\UseCases\AddAccount;
+use App\Domain\UseCases\CheckAccount;
+use App\Exceptions\AccountExistsError;
 use App\Exceptions\InvalidParamError;
 use App\Exceptions\MissingParamError;
 use App\Http\Helpers\HttpHelpers;
@@ -17,6 +19,7 @@ class SignUpController extends Controller
 {
     public function __construct(
         private EmailValidator $emailValidator,
+        private CheckAccount $checkAccount,
         private AddAccount $addAccount,
         private TokenGenerator $tokenGenerator
     ) {
@@ -48,6 +51,10 @@ class SignUpController extends Controller
 
             if ($password !== $passwordConfirmation) {
                 return HttpHelpers::badRequest(new InvalidParamError('passwordConfirmation'));
+            }
+
+            if ($this->checkAccount->verifyIfExists($email)) {
+                return HttpHelpers::badRequest(new AccountExistsError($email));
             }
 
             $accountModel = $this->addAccount->add(new AddAccountModel($name, $email, $password));
