@@ -50,4 +50,15 @@ class DbCheckAccountTest extends TestCase
 
         $this->sut->verifyIfExists($email);
     }
+
+    public function testShouldCheckAccountRepositoryHaveBeenCalledWithCorrectEmail()
+    {
+        $email = 'any_email@email.com';
+
+        $this->checkAccountRepositoryStub->expects($this->once())
+            ->method('findAccountByEmail')
+            ->with($email);
+
+        $this->sut->verifyIfExists($email);
+    }
 }
