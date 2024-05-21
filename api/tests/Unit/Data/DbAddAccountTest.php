@@ -3,6 +3,7 @@
 namespace Tests\Unit\Data;
 
 use App\Data\Protocols\AddAccountRepository;
+use App\Data\Protocols\Encrypter;
 use App\Data\UseCases\DbAddAccount;
 use App\Domain\Models\AddAccountModel;
 use Error;
@@ -13,13 +14,16 @@ class DbAddAccountTest extends TestCase
     private DbAddAccount $sut;
 
     private AddAccountRepository $addAccountRepositoryStub;
+    private Encrypter $encrypterStub;
 
     public function setUp(): void
     {
         $this->addAccountRepositoryStub = $this->createMock(AddAccountRepository::class);
+        $this->encrypterStub = $this->createMock(Encrypter::class);
 
         $this->sut = new DbAddAccount(
-            $this->addAccountRepositoryStub
+            $this->addAccountRepositoryStub,
+            $this->encrypterStub
         );
     }
 
@@ -35,6 +39,18 @@ class DbAddAccountTest extends TestCase
     public function testEnsureCorrectInstance()
     {
         $this->assertInstanceOf(DbAddAccount::class, $this->sut);
+    }
+
+    public function testShouldThrowIfEncrypterThrows()
+    {
+        $this->expectException(Error::class);
+
+        $this->encrypterStub->method('encrypt')
+            ->willThrowException(new Error());
+
+        $data = $this->mockAddAccountModel();
+
+        $this->sut->add($data);
     }
 
     public function testShouldThrowIfAddAccountThrows()
