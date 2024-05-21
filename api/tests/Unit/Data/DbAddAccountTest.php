@@ -53,6 +53,17 @@ class DbAddAccountTest extends TestCase
         $this->sut->add($data);
     }
 
+    public function testShouldEncrypterHaveBeenCalledWithCorrectPassword()
+    {
+        $data = $this->mockAddAccountModel();
+
+        $this->encrypterStub->expects($this->once())
+            ->method('encrypt')
+            ->with($data->getPassword());
+
+        $this->sut->add($data);
+    }
+
     public function testShouldThrowIfAddAccountThrows()
     {
         $this->expectException(Error::class);
@@ -66,7 +77,7 @@ class DbAddAccountTest extends TestCase
         $this->sut->add($data);
     }
 
-    public function testShouldAddAccountRepositoryHaveBeenCalledWithWithCorrectAddAccountModel()
+    public function testShouldAddAccountRepositoryHaveBeenCalledWithCorrectAddAccountModel()
     {
         $data = $this->mockAddAccountModel();
 
