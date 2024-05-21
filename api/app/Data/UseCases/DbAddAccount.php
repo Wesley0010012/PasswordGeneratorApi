@@ -18,15 +18,14 @@ class DbAddAccount implements AddAccount
 
     public function add(AddAccountModel $addAccountModel): AccountModel
     {
-        $addAccountModel->setPassword($this->encrypter->encrypt($addAccountModel->getPassword()));
-
-        $id = $this->addAccountRepository->add($addAccountModel);
-
         $accountModel = new AccountModel();
-        $accountModel->setId($id);
         $accountModel->setName($addAccountModel->getName());
         $accountModel->setEmail($addAccountModel->getEmail());
-        $accountModel->setPassword($addAccountModel->getPassword());
+        $accountModel->setPassword($this->encrypter->encrypt($addAccountModel->getPassword()));
+
+        $id = $this->addAccountRepository->add($accountModel);
+
+        $accountModel->setId($id);
 
         return $accountModel;
     }

@@ -2,9 +2,9 @@
 
 namespace App\Data\Protocols;
 
-use App\Domain\Models\AddAccountModel;
+use App\Domain\Models\AccountModel;
 
 interface AddAccountRepository
 {
-    public function add(AddAccountModel $addAccountModel): int;
+    public function add(AccountModel $accountModel): int;
 }

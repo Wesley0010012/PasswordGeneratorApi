@@ -5,6 +5,7 @@ namespace Tests\Unit\Data;
 use App\Data\Protocols\AddAccountRepository;
 use App\Data\Protocols\Encrypter;
 use App\Data\UseCases\DbAddAccount;
+use App\Domain\Models\AccountModel;
 use App\Domain\Models\AddAccountModel;
 use Error;
 use Tests\TestCase;
@@ -34,6 +35,21 @@ class DbAddAccountTest extends TestCase
             'valid_email',
             'valid_password'
         );
+    }
+
+    private function mockCypheredPassword()
+    {
+        return 'cyphered_password';
+    }
+
+    private function mockAccountModel(AddAccountModel $addAccountModel)
+    {
+        $accountModel = new AccountModel();
+        $accountModel->setName($addAccountModel->getName());
+        $accountModel->setEmail($addAccountModel->getEmail());
+        $accountModel->setPassword($this->mockCypheredPassword());
+
+        return $accountModel;
     }
 
     public function testEnsureCorrectInstance()
@@ -81,9 +97,14 @@ class DbAddAccountTest extends TestCase
     {
         $data = $this->mockAddAccountModel();
 
+        $accountModel = $this->mockAccountModel($data);
+
+        $this->encrypterStub->method('encrypt')
+            ->willReturn($this->mockCypheredPassword());
+
         $this->addAccountRepositoryStub->expects($this->once())
             ->method('add')
-            ->with($data);
+            ->with($accountModel);
 
         $this->sut->add($data);
     }
@@ -91,6 +112,9 @@ class DbAddAccountTest extends TestCase
     public function testShouldReturnAnAccountModelOnSuccess()
     {
         $data = $this->mockAddAccountModel();
+
+        $this->encrypterStub->method('encrypt')
+            ->willReturn($this->mockCypheredPassword());
 
         $this->addAccountRepositoryStub->method('add')
             ->willReturn(9999);
@@ -101,6 +125,6 @@ class DbAddAccountTest extends TestCase
         $this->assertIsNumeric(9999, $result->getId());
         $this->assertEquals($data->getName(), $result->getName());
         $this->assertEquals($data->getEmail(), $result->getEmail());
-        $this->assertEquals($data->getPassword(), $result->getPassword());
+        $this->assertEquals($this->mockCypheredPassword(), $result->getPassword());
     }
 }
