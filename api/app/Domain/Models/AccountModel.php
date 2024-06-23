@@ -2,12 +2,25 @@
 
 namespace App\Domain\Models;
 
-class AccountModel
+use Illuminate\Database\Eloquent\Model;
+
+class AccountModel extends Model
 {
     private int $id;
     private string $name;
     private string $email;
     private string $password;
+
+    protected $table = 'accounts';
+
+    protected $primaryKey = 'acc_id';
+    public $timestamps = false;
+
+    protected $fillable = [
+        "acc_name",
+        "acc_email",
+        "acc_password"
+    ];
 
     public function getId(): int
     {
