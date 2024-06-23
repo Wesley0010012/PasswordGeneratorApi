@@ -11,7 +11,7 @@ ENV ENV APACHE_LOG_DIR="/var/log"
 RUN apt install -y php libapache2-mod-php php-cli php-cgi php-mysql curl zip unzip
 
 RUN curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
-RUN apt-get install -y php-dom php-curl php-xml php-zip
+RUN apt-get install -y php-dom php-curl php-xml php-zip php8.2-sqlite
 RUN php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
 
 COPY ./laravel.conf /etc/apache2/sites-available/000-default.conf
