@@ -34,6 +34,15 @@ class AccountRepositoryTest extends TestCase
         return 1;
     }
 
+    private function populateDatabase(AccountModel $accountModel): void
+    {
+        (new AccountModel([
+            "acc_name" => $accountModel->getName(),
+            "acc_email" => $accountModel->getEmail(),
+            "acc_password" => $accountModel->getPassword(),
+        ]))->save();
+    }
+
     public function testEnsureCorrectInstance()
     {
         $this->assertInstanceOf(AccountRepository::class, $this->sut);
@@ -52,5 +61,19 @@ class AccountRepositoryTest extends TestCase
             "acc_email" => $accountModel->getEmail(),
             "acc_password" => $accountModel->getPassword()
         ]);
+    }
+
+    public function testShouldReturnAnAccountIfExists()
+    {
+        $accountModel = $this->mockAccountModel();
+
+        $this->populateDatabase($accountModel);
+
+        $result = $this->sut->findAccountByEmail($accountModel->getEmail())?->getAttributes();
+
+        $this->assertNotNull($result);
+        $this->assertEquals($accountModel->getName(), $result['acc_name']);
+        $this->assertEquals($accountModel->getEmail(), $result['acc_email']);
+        $this->assertEquals($accountModel->getPassword(), $result['acc_password']);
     }
 }
