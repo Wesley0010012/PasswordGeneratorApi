@@ -58,7 +58,7 @@ class AccountRepositoryTest extends TestCase
         ]);
     }
 
-    public function testShouldReturnAnAccountIfExists()
+    public function testShouldReturnAnAccountEmailIfExists()
     {
         $accountModel = $this->mockAccountModel();
 
