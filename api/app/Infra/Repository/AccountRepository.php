@@ -3,9 +3,12 @@
 namespace App\Infra\Repository;
 
 use App\Data\Protocols\AddAccountRepository;
+use App\Data\Protocols\CheckAccountRepository;
 use App\Domain\Models\AccountModel;
 
-class AccountRepository implements AddAccountRepository
+class AccountRepository implements
+    AddAccountRepository,
+    CheckAccountRepository
 {
     public function add(AccountModel $accountModel): int
     {
@@ -18,5 +21,10 @@ class AccountRepository implements AddAccountRepository
         $model->save();
 
         return $model->acc_id;
+    }
+
+    public function findAccountByEmail(string $email): ?AccountModel
+    {
+        return AccountModel::where('acc_email', '=', $email)->first();
     }
 }
