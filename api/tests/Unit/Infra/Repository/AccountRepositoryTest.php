@@ -29,11 +29,6 @@ class AccountRepositoryTest extends TestCase
         return $accountModel;
     }
 
-    private function mockId()
-    {
-        return 1;
-    }
-
     private function populateDatabase(AccountModel $accountModel): void
     {
         (new AccountModel([
