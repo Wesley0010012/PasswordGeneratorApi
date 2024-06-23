@@ -71,4 +71,13 @@ class AccountRepositoryTest extends TestCase
         $this->assertEquals($accountModel->getEmail(), $result['acc_email']);
         $this->assertEquals($accountModel->getPassword(), $result['acc_password']);
     }
+
+    public function testShouldReturnNullIfEmailNotExists()
+    {
+        $accountModel = $this->mockAccountModel();
+
+        $result = $this->sut->findAccountByEmail($accountModel->getEmail())?->getAttributes();
+
+        $this->assertNull($result);
+    }
 }
