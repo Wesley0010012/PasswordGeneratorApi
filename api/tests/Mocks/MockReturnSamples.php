@@ -8,4 +8,9 @@ abstract class MockReturnSamples
     {
         return '{"error":"Invalid param: email"}';
     }
+
+    static function mockInvalidPasswordReturn(): string
+    {
+        return '{"error":"Invalid param: passwordConfirmation"}';
+    }
 }
