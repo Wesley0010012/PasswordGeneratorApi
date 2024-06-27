@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Mocks\MockReturnSamples;
 use Tests\TestCase;
 
 class SignUpRouteIntegrationTest extends TestCase
@@ -29,5 +30,13 @@ class SignUpRouteIntegrationTest extends TestCase
         $response = $this->post('/api/account/signup');
 
         $this->assertEquals(400, $response->getStatusCode());
+    }
+
+    public function testShouldReturn400IfInvalidEmailWasProvided()
+    {
+        $response = $this->post('/api/account/signup', $this->mockAccount(validEmail: false));
+
+        $this->assertEquals(400, $response->getStatusCode());
+        $this->assertEquals(MockReturnSamples::mockInvalidEmailReturn(), $response->getContent());
     }
 }
