@@ -47,4 +47,12 @@ class SignUpRouteIntegrationTest extends TestCase
         $this->assertEquals(400, $response->getStatusCode());
         $this->assertEquals(MockReturnSamples::mockInvalidPasswordReturn(), $response->getContent());
     }
+
+    public function testShouldReturn200OnSuccess()
+    {
+        $response = $this->post('/api/account/signup', $this->mockAccount());
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals(MockReturnSamples::mockSuccessReturn(), $response->getContent());
+    }
 }
