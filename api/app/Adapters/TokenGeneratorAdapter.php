@@ -7,12 +7,10 @@ use App\Http\Protocols\TokenGenerator;
 
 class TokenGeneratorAdapter implements TokenGenerator
 {
-    public function generate(AccountModel $accountModel): string
+    public function generate(AccountModel $accountModel): array
     {
-        return json_encode([
-            "account" => $accountModel->getName(),
-            "email" => $accountModel->getEmail(),
-            "password" => $accountModel->getPassword()
-        ]);
+        return [
+            "token" => base64_encode($accountModel->getEmail() . ',' . $accountModel->getPassword())
+        ];
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Factories\SignUpControllerFactory;
+use App\Http\Adapters\RouteAdapter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +16,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::post('/account/signup', function (Request $request) {
+    return (new RouteAdapter())->adapt($request, (new SignUpControllerFactory)->make());
 });
