@@ -6,5 +6,5 @@ use App\Domain\Models\AccountModel;
 
 interface TokenGenerator
 {
-    public function generate(AccountModel $accountModel): string;
+    public function generate(AccountModel $accountModel): array;
 }

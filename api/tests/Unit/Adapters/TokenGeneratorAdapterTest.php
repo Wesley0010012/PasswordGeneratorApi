@@ -27,11 +27,9 @@ class TokenGeneratorAdapterTest extends TestCase
 
     private function mockResult(AccountModel $accountModel)
     {
-        return json_encode([
-            "account" => $accountModel->getName(),
-            "email" => $accountModel->getEmail(),
-            "password" => $accountModel->getPassword()
-        ]);
+        return [
+            "token" => "dmFsaWRfZW1haWwsdmFsaWRfcGFzc3dvcmQ="
+        ];
     }
 
     public function testEnsureCorrectInstance()

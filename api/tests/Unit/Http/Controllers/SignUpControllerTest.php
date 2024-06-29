@@ -450,7 +450,9 @@ class SignUpControllerTest extends TestCase
 
     public function testShouldReturn200OnSuccess()
     {
-        $token = "VALID_TOKEN";
+        $token = [
+            "data" => "GENERATED_TOKEN"
+        ];
 
         $this->emailValidatorStub->method('validate')
             ->willReturn(true);
