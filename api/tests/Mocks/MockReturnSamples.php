@@ -18,4 +18,9 @@ abstract class MockReturnSamples
     {
         return '{"token":"dmFsaWRfZW1haWxAZW1haWwuY29tLExUNFdrY1NESUdTNXFYNUExaENqYlE9PQ=="}';
     }
+
+    static function mockUnauthenticatedReturn(): string
+    {
+        return '{"error":"Unauthenticated account with email: valid_email@email.com"}';
+    }
 }

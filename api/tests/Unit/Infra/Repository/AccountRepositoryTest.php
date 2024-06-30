@@ -3,6 +3,7 @@
 namespace Tests\Unit\Infra\Repository;
 
 use App\Domain\Models\AccountModel;
+use App\Domain\Models\FindAccountModel;
 use App\Infra\Repository\AccountRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -27,6 +28,11 @@ class AccountRepositoryTest extends TestCase
         $accountModel->setPassword("valid_password");
 
         return $accountModel;
+    }
+
+    private function mockFindAccountModel()
+    {
+        return new FindAccountModel('valid_email@email.com', 'valid_password');
     }
 
     private function populateDatabase(AccountModel $accountModel): void
@@ -79,5 +85,28 @@ class AccountRepositoryTest extends TestCase
         $result = $this->sut->findAccountByEmail($accountModel->getEmail())?->getAttributes();
 
         $this->assertNull($result);
+    }
+
+    public function testShouldReturnNullIfAccountDataNotExists()
+    {
+        $result = $this->sut->findAccountData($this->mockFindAccountModel());
+
+        $this->assertNull($result);
+    }
+
+    public function testShouldReturnAnAccountModelIfAccountDataExists()
+    {
+        $accountModel = $this->mockAccountModel();
+        $accountModel->setId(1);
+
+        $this->populateDatabase($accountModel);
+
+        $result = $this->sut->findAccountData($this->mockFindAccountModel());
+
+        $this->assertNotNull($result);
+        $this->assertEquals($accountModel->getId(), $result->getId());
+        $this->assertEquals($accountModel->getName(), $result->getName());
+        $this->assertEquals($accountModel->getEmail(), $result->getEmail());
+        $this->assertEquals($accountModel->getPassword(), $result->getPassword());
     }
 }
