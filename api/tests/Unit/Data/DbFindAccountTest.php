@@ -82,4 +82,18 @@ class DbFindAccountTest extends TestCase
 
         $this->sut->getAccount($data);
     }
+
+    public function testShouldFindAccountRepositoryHaveBeenCalledWithCorrectFindAccountModel()
+    {
+        $data = $this->mockFindAccountModel();
+
+        $this->encrypterStub->method('encrypt')
+            ->willReturn($this->mockCypheredPassword());
+
+        $this->findAccountRepositoryStub->expects($this->once())
+            ->method('findAccountData')
+            ->with($data);
+
+        $this->sut->getAccount($data);
+    }
 }
