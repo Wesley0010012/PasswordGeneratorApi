@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Models\AccountModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Mocks\MockReturnSamples;
 use Tests\TestCase;
@@ -23,6 +24,15 @@ class SignInRouteIntegrationTest extends TestCase
         ];
     }
 
+    private function populateDatabase(): void
+    {
+        (new AccountModel([
+            "acc_name" => "valid_name",
+            "acc_email" => "valid_email@email.com",
+            "acc_password" => "password"
+        ]))->save();
+    }
+
     public function testShouldReturn400IfNoDataWasProvided()
     {
         $response = $this->post('/api/account/signin');
@@ -40,6 +50,16 @@ class SignInRouteIntegrationTest extends TestCase
 
     public function testShouldReturn400IfUnauthenticated()
     {
+        $response = $this->post('/api/account/signin', $this->mockAccount());
+
+        $this->assertEquals(400, $response->getStatusCode());
+        $this->assertEquals(MockReturnSamples::mockUnauthenticatedReturn(), $response->getContent());
+    }
+
+    public function testShouldReturn200OnSuccess()
+    {
+        $this->populateDatabase();
+
         $response = $this->post('/api/account/signin', $this->mockAccount());
 
         $this->assertEquals(400, $response->getStatusCode());
