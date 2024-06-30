@@ -97,10 +97,8 @@ class SignInControllerTest extends TestCase
         $httpRequest = new HttpRequest();
 
         $body = [
-            'name' => 'any_name',
             'email' => 'any_email',
-            'password' => 'any_password',
-            'passwordConfirmation' => 'any_password'
+            'password' => 'any_password'
         ];
 
         $httpRequest->setBody($body);
@@ -120,10 +118,8 @@ class SignInControllerTest extends TestCase
         $httpRequest = new HttpRequest();
 
         $body = [
-            'name' => 'any_name',
             'email' => 'any_email',
-            'password' => 'any_password',
-            'passwordConfirmation' => 'any_password'
+            'password' => 'any_password'
         ];
 
         $httpRequest->setBody($body);
