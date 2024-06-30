@@ -155,4 +155,27 @@ class SignInControllerTest extends TestCase
         $this->assertInstanceOf(UnauthenticatedError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
+
+    public function testShouldReturn500IfFindAccountThrows()
+    {
+        $this->emailValidatorStub->method('validate')
+            ->willReturn(true);
+
+        $this->findAccountStub->method('getAccount')
+            ->willThrowException(new Error());
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'email' => 'email',
+            'password' => 'any_password'
+        ]);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new InternalServerError();
+
+        $this->assertEquals(500, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
 }
