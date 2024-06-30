@@ -93,4 +93,20 @@ class AccountRepositoryTest extends TestCase
 
         $this->assertNull($result);
     }
+
+    public function testShouldReturnAnAccountModelIfAccountDataExists()
+    {
+        $accountModel = $this->mockAccountModel();
+        $accountModel->setId(1);
+
+        $this->populateDatabase($accountModel);
+
+        $result = $this->sut->findAccountData($this->mockFindAccountModel());
+
+        $this->assertNotNull($result);
+        $this->assertEquals($accountModel->getId(), $result->getId());
+        $this->assertEquals($accountModel->getName(), $result->getName());
+        $this->assertEquals($accountModel->getEmail(), $result->getEmail());
+        $this->assertEquals($accountModel->getPassword(), $result->getPassword());
+    }
 }
