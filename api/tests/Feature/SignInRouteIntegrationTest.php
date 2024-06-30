@@ -37,4 +37,12 @@ class SignInRouteIntegrationTest extends TestCase
         $this->assertEquals(400, $response->getStatusCode());
         $this->assertEquals(MockReturnSamples::mockInvalidEmailReturn(), $response->getContent());
     }
+
+    public function testShouldReturn400IfUnauthenticated()
+    {
+        $response = $this->post('/api/account/signin', $this->mockAccount());
+
+        $this->assertEquals(400, $response->getStatusCode());
+        $this->assertEquals(MockReturnSamples::mockUnauthenticatedReturn(), $response->getContent());
+    }
 }
