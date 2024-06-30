@@ -2,11 +2,13 @@
 
 namespace Tests\Unit\Http\Controllers;
 
+use App\Exceptions\InternalServerError;
 use App\Exceptions\InvalidParamError;
 use App\Exceptions\MissingParamError;
 use App\Http\Controllers\SignInController;
 use App\Http\Protocols\EmailValidator;
 use App\Http\Protocols\HttpRequest;
+use Error;
 use Tests\TestCase;
 
 class SignInControllerTest extends TestCase
@@ -103,5 +105,30 @@ class SignInControllerTest extends TestCase
             ->with($body['email']);
 
         $this->sut->handle($httpRequest);
+    }
+
+    public function testShouldReturn500IfEmailValidatorThrows()
+    {
+        $this->emailValidatorStub->method('validate')
+            ->willThrowException(new Error());
+
+        $httpRequest = new HttpRequest();
+
+        $body = [
+            'name' => 'any_name',
+            'email' => 'any_email',
+            'password' => 'any_password',
+            'passwordConfirmation' => 'any_password'
+        ];
+
+        $httpRequest->setBody($body);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new InternalServerError();
+
+        $this->assertEquals(500, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 }
