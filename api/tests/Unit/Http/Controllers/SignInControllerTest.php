@@ -84,4 +84,24 @@ class SignInControllerTest extends TestCase
         $this->assertInstanceOf(InvalidParamError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
+
+    public function testShouldEmailValidatorHaveBeenCalledWithCorrectEmail()
+    {
+        $httpRequest = new HttpRequest();
+
+        $body = [
+            'name' => 'any_name',
+            'email' => 'any_email',
+            'password' => 'any_password',
+            'passwordConfirmation' => 'any_password'
+        ];
+
+        $httpRequest->setBody($body);
+
+        $this->emailValidatorStub->expects($this->once())
+            ->method('validate')
+            ->with($body['email']);
+
+        $this->sut->handle($httpRequest);
+    }
 }
