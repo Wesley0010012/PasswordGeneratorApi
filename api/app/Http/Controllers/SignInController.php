@@ -11,13 +11,15 @@ use App\Http\Helpers\HttpHelpers;
 use App\Http\Protocols\EmailValidator;
 use App\Http\Protocols\HttpRequest;
 use App\Http\Protocols\HttpResponse;
+use App\Http\Protocols\TokenGenerator;
 use Throwable;
 
 class SignInController extends Controller
 {
     public function __construct(
         private readonly EmailValidator $emailValidator,
-        private readonly FindAccount $findAccount
+        private readonly FindAccount $findAccount,
+        private readonly TokenGenerator $tokenGenerator
     ) {
     }
 
@@ -46,7 +48,7 @@ class SignInController extends Controller
                 return HttpHelpers::badRequest(new UnauthenticatedError($email));
             }
 
-            return HttpHelpers::success("ANY_SUCCESS");
+            return HttpHelpers::success($this->tokenGenerator->generate($accountModel));
         } catch (Throwable $e) {
             return HttpHelpers::internalServerError();
         }
