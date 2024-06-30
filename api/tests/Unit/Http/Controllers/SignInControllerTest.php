@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Http\Controllers;
 
+use App\Domain\Models\FindAccountModel;
 use App\Domain\UseCases\FindAccount;
 use App\Exceptions\InternalServerError;
 use App\Exceptions\InvalidParamError;
@@ -177,5 +178,23 @@ class SignInControllerTest extends TestCase
         $this->assertEquals(500, $httpResponse->getStatusCode());
         $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
+
+    public function testShouldFindAccountHaveBeenCalledWithCorrectData()
+    {
+        $this->emailValidatorStub->method('validate')
+            ->willReturn(true);
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'email' => 'email',
+            'password' => 'any_password'
+        ]);
+
+        $this->findAccountStub->expects($this->once())
+            ->method('getAccount')
+            ->with(new FindAccountModel($httpRequest->getBody()['email'], $httpRequest->getBody()['password']));
+
+        $this->sut->handle($httpRequest);
     }
 }
