@@ -239,4 +239,27 @@ class SignInControllerTest extends TestCase
         $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
+
+    public function testShouldTokenGeneratorHaveBeenCalledWithCorrectData()
+    {
+        $accountModel = $this->mockAccountModel();
+
+        $this->emailValidatorStub->method('validate')
+            ->willReturn(true);
+
+        $this->findAccountStub->method('getAccount')
+            ->willReturn($accountModel);
+
+        $this->tokenGeneratorStub->expects($this->once())
+            ->method('generate')
+            ->with($accountModel);
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'email' => 'email',
+            'password' => 'any_password'
+        ]);
+
+        $this->sut->handle($httpRequest);
+    }
 }
