@@ -262,4 +262,34 @@ class SignInControllerTest extends TestCase
 
         $this->sut->handle($httpRequest);
     }
+
+    public function testShouldReturn200OnSuccess()
+    {
+        $token = [
+            "data" => "GENERATED_TOKEN"
+        ];
+
+        $this->emailValidatorStub->method('validate')
+            ->willReturn(true);
+
+        $this->findAccountStub->method('getAccount')
+            ->willReturn($this->mockAccountModel());
+
+        $this->tokenGeneratorStub->method('generate')
+            ->willReturn($token);
+
+        $httpRequest = new HttpRequest();
+
+        $body = [
+            'email' => 'valid_email@email.com',
+            'password' => 'valid_password'
+        ];
+
+        $httpRequest->setBody($body);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $this->assertEquals(200, $httpResponse->getStatusCode());
+        $this->assertEquals($token, $httpResponse->getBody());
+    }
 }
