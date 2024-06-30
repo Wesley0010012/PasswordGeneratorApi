@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Http\Controllers;
 
+use App\Domain\Models\AccountModel;
 use App\Domain\Models\FindAccountModel;
 use App\Domain\UseCases\FindAccount;
 use App\Exceptions\InternalServerError;
@@ -11,6 +12,7 @@ use App\Exceptions\UnauthenticatedError;
 use App\Http\Controllers\SignInController;
 use App\Http\Protocols\EmailValidator;
 use App\Http\Protocols\HttpRequest;
+use App\Http\Protocols\TokenGenerator;
 use Error;
 use Tests\TestCase;
 
@@ -19,16 +21,30 @@ class SignInControllerTest extends TestCase
     private SignInController $sut;
     private EmailValidator $emailValidatorStub;
     private FindAccount $findAccountStub;
+    private TokenGenerator $tokenGeneratorStub;
 
     public function setUp(): void
     {
         $this->emailValidatorStub = $this->createMock(EmailValidator::class);
         $this->findAccountStub = $this->createMock(FindAccount::class);
+        $this->tokenGeneratorStub = $this->createMock(TokenGenerator::class);
 
         $this->sut = new SignInController(
             $this->emailValidatorStub,
-            $this->findAccountStub
+            $this->findAccountStub,
+            $this->tokenGeneratorStub
         );
+    }
+
+    private function mockAccountModel(): AccountModel
+    {
+        $accountModel =  new AccountModel();
+        $accountModel->setId(9999);
+        $accountModel->setName("valid_name");
+        $accountModel->setEmail("valid_email");
+        $accountModel->setPassword("valid_password");
+
+        return $accountModel;
     }
 
     public function testEnsureCorrectInstance()
@@ -196,5 +212,31 @@ class SignInControllerTest extends TestCase
             ->with(new FindAccountModel($httpRequest->getBody()['email'], $httpRequest->getBody()['password']));
 
         $this->sut->handle($httpRequest);
+    }
+
+    public function testShouldReturn500IfTokenGeneratorThrows()
+    {
+        $this->emailValidatorStub->method('validate')
+            ->willReturn(true);
+
+        $this->findAccountStub->method('getAccount')
+            ->willReturn($this->mockAccountModel());
+
+        $this->tokenGeneratorStub->method('generate')
+            ->willThrowException(new Error());
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'email' => 'email',
+            'password' => 'any_password'
+        ]);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new InternalServerError();
+
+        $this->assertEquals(500, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 }
