@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Models\FindAccountModel;
+use App\Domain\UseCases\FindAccount;
 use App\Exceptions\InvalidParamError;
 use App\Exceptions\MissingParamError;
+use App\Exceptions\UnauthenticatedError;
 use App\Http\Helpers\HttpHelpers;
 use App\Http\Protocols\EmailValidator;
 use App\Http\Protocols\HttpRequest;
@@ -12,8 +15,10 @@ use Throwable;
 
 class SignInController extends Controller
 {
-    public function __construct(private readonly EmailValidator $emailValidator)
-    {
+    public function __construct(
+        private readonly EmailValidator $emailValidator,
+        private readonly FindAccount $findAccount
+    ) {
     }
 
     public function handle(HttpRequest $httpRequest): HttpResponse
@@ -33,6 +38,12 @@ class SignInController extends Controller
 
             if (!$this->emailValidator->validate($email)) {
                 return HttpHelpers::badRequest(new InvalidParamError('email'));
+            }
+
+            $accountModel = $this->findAccount->getAccount(new FindAccountModel($email, $password));
+
+            if (!$accountModel) {
+                return HttpHelpers::badRequest(new UnauthenticatedError($email));
             }
 
             return HttpHelpers::success("ANY_SUCCESS");
