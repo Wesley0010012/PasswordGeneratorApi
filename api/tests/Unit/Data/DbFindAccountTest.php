@@ -47,4 +47,15 @@ class DbFindAccountTest extends TestCase
 
         $this->sut->getAccount($data);
     }
+
+    public function testShouldEncrypterHaveBeenCalledWithCorrectPassword()
+    {
+        $data = $this->mockFindAccountModel();
+
+        $this->encrypterStub->expects($this->once())
+            ->method('encrypt')
+            ->with($data->getPassword());
+
+        $this->sut->getAccount($data);
+    }
 }
