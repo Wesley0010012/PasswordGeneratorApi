@@ -127,4 +127,19 @@ class DbFindAccountTest extends TestCase
         $this->assertEquals($data->getEmail(), $result->getEmail());
         $this->assertEquals($data->getPassword(), $result->getPassword());
     }
+
+    public function testShouldReturnNullIfAccountDoesNotExists()
+    {
+        $data = $this->mockFindAccountModel();
+
+        $this->encrypterStub->method('encrypt')
+            ->willReturn($this->mockCypheredPassword());
+
+        $this->findAccountRepositoryStub->method('findAccountData')
+            ->willReturn(null);
+
+        $result = $this->sut->getAccount($data);
+
+        $this->assertNull($result);
+    }
 }
