@@ -89,7 +89,7 @@ class AccountRepositoryTest extends TestCase
 
     public function testShouldReturnNullIfAccountDataNotExists()
     {
-        $result = $this->sut->findAccountData($this->mockFindAccountModel())?->getAttributes();
+        $result = $this->sut->findAccountData($this->mockFindAccountModel());
 
         $this->assertNull($result);
     }
