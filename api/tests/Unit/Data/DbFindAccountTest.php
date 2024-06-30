@@ -5,6 +5,7 @@ namespace Tests\Unit\Data\UseCases;
 use App\Data\Protocols\Encrypter;
 use App\Data\Protocols\FindAccountRepository;
 use App\Data\UseCases\DbFindAccount;
+use App\Domain\Models\AccountModel;
 use App\Domain\Models\FindAccountModel;
 use Error;
 use Tests\TestCase;
@@ -33,6 +34,17 @@ class DbFindAccountTest extends TestCase
             'valid_email',
             'valid_password'
         );
+    }
+
+    private function mockAccountModel(FindAccountModel $findAccountModel)
+    {
+        $accountModel = new AccountModel();
+        $accountModel->setId(9999);
+        $accountModel->setName("valid_name");
+        $accountModel->setEmail($findAccountModel->getEmail());
+        $accountModel->setPassword($this->mockCypheredPassword());
+
+        return $accountModel;
     }
 
     private function mockCypheredPassword()
@@ -95,5 +107,24 @@ class DbFindAccountTest extends TestCase
             ->with($data);
 
         $this->sut->getAccount($data);
+    }
+
+    public function testShouldReturnAnAccountModelOnSuccess()
+    {
+        $data = $this->mockFindAccountModel();
+
+        $this->encrypterStub->method('encrypt')
+            ->willReturn($this->mockCypheredPassword());
+
+        $this->findAccountRepositoryStub->method('findAccountData')
+            ->willReturn($this->mockAccountModel($data));
+
+        $result = $this->sut->getAccount($data);
+
+        $this->assertNotNull($result);
+        $this->assertEquals(9999, $result->getId());
+        $this->assertEquals('valid_name', $result->getName());
+        $this->assertEquals($data->getEmail(), $result->getEmail());
+        $this->assertEquals($data->getPassword(), $result->getPassword());
     }
 }
