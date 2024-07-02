@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Http\Controllers;
 
+use App\Exceptions\InvalidParamError;
 use App\Exceptions\MissingParamError;
 use App\Http\Controllers\GeneratePasswordController;
 use App\Http\Protocols\HttpRequest;
@@ -52,6 +53,24 @@ class GeneratePasswordControllerTest extends TestCase
 
         $this->assertEquals(400, $httpResponse->getStatusCode());
         $this->assertInstanceOf(MissingParamError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
+
+
+    public function testShouldReturn400IfInvalidPasswordSizeWasProvided()
+    {
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'size' => -1
+        ]);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new InvalidParamError('size');
+
+        $this->assertEquals(400, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(InvalidParamError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 }
