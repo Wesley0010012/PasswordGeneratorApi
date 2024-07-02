@@ -37,4 +37,21 @@ class GeneratePasswordControllerTest extends TestCase
         $this->assertInstanceOf(MissingParamError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
+
+    public function testShouldReturn400IfNoSizeWasProvided()
+    {
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'size' => null
+        ]);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new MissingParamError('size');
+
+        $this->assertEquals(400, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(MissingParamError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
 }
