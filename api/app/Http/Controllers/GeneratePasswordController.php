@@ -7,9 +7,14 @@ use App\Exceptions\MissingParamError;
 use App\Http\Helpers\HttpHelpers;
 use App\Http\Protocols\HttpRequest;
 use App\Http\Protocols\HttpResponse;
+use App\Http\Protocols\TokenDecrypter;
 
 class GeneratePasswordController extends Controller
 {
+    public function __construct(private readonly TokenDecrypter $tokenDecrypter)
+    {
+    }
+
     public function handle(HttpRequest $httpRequest): HttpResponse
     {
         $body = $httpRequest->getBody();
@@ -26,6 +31,12 @@ class GeneratePasswordController extends Controller
 
         if ($size < 1) {
             return HttpHelpers::badRequest(new InvalidParamError('size'));
+        }
+
+        $decryptedToken = $this->tokenDecrypter->decrypt($token);
+
+        if (!$decryptedToken) {
+            return HttpHelpers::badRequest(new InvalidParamError('token'));
         }
 
         return HttpHelpers::success("PASS");
