@@ -99,4 +99,19 @@ class GeneratePasswordControllerTest extends TestCase
         $this->assertInstanceOf(InvalidParamError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
+
+    public function testShouldTokenDecrypterHaveBeenCalledWithCorrectToken()
+    {
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'size' => 1
+        ]);
+
+        $this->tokenDecrypterStub->expects($this->once())
+            ->method('decrypt')
+            ->with($httpRequest->getBody()['token']);
+
+        $this->sut->handle($httpRequest);
+    }
 }
