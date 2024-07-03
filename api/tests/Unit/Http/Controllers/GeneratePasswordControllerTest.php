@@ -2,11 +2,13 @@
 
 namespace Tests\Unit\Http\Controllers;
 
+use App\Exceptions\InternalServerError;
 use App\Exceptions\InvalidParamError;
 use App\Exceptions\MissingParamError;
 use App\Http\Controllers\GeneratePasswordController;
 use App\Http\Protocols\HttpRequest;
 use App\Http\Protocols\TokenDecrypter;
+use Error;
 use Tests\TestCase;
 
 class GeneratePasswordControllerTest extends TestCase
@@ -113,5 +115,25 @@ class GeneratePasswordControllerTest extends TestCase
             ->with($httpRequest->getBody()['token']);
 
         $this->sut->handle($httpRequest);
+    }
+
+    public function testShouldReturn500IfTokenDecrypterThrows()
+    {
+        $this->tokenDecrypterStub->method('decrypt')
+            ->willThrowException(new Error());
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'size' => 1
+        ]);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new InternalServerError('token');
+
+        $this->assertEquals(500, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 }
