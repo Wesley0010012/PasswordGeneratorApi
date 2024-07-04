@@ -255,4 +255,25 @@ class GeneratePasswordControllerTest extends TestCase
         $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
+
+    public function testShouldGeneratePasswordHaveBeenCalledWithCorrectPasswordSize()
+    {
+        $this->tokenDecrypterStub->method('decrypt')
+            ->willReturn($this->mockTokenAccount());
+
+        $this->findAccountStub->method('getAccount')
+            ->willReturn($this->mockAccountModel());
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'size' => 1
+        ]);
+
+        $this->generatePasswordStub->expects($this->once())
+            ->method('generate')
+            ->with($httpRequest->getBody()['size']);
+
+        $this->sut->handle($httpRequest);
+    }
 }
