@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Models\FindAccountModel;
 use App\Domain\UseCases\FindAccount;
+use App\Domain\UseCases\GeneratePassword;
 use App\Exceptions\InvalidParamError;
 use App\Exceptions\MissingParamError;
 use App\Exceptions\UnauthorizedError;
@@ -17,7 +18,8 @@ class GeneratePasswordController extends Controller
 {
     public function __construct(
         private readonly TokenDecrypter $tokenDecrypter,
-        private readonly FindAccount $findAccount
+        private readonly FindAccount $findAccount,
+        private readonly GeneratePassword $generatePassword
     ) {
     }
 
@@ -52,7 +54,9 @@ class GeneratePasswordController extends Controller
                 return HttpHelpers::badRequest(new UnauthorizedError($token));
             }
 
-            return HttpHelpers::success("PASS");
+            return HttpHelpers::success([
+                "password" => $this->generatePassword->generate($size)
+            ]);
         } catch (Throwable $e) {
             return HttpHelpers::internalServerError();
         }
