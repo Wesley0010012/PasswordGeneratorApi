@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Models\FindAccountModel;
+use App\Domain\UseCases\FindAccount;
 use App\Exceptions\InvalidParamError;
 use App\Exceptions\MissingParamError;
+use App\Exceptions\UnauthorizedError;
 use App\Http\Helpers\HttpHelpers;
 use App\Http\Protocols\HttpRequest;
 use App\Http\Protocols\HttpResponse;
@@ -12,8 +15,10 @@ use Throwable;
 
 class GeneratePasswordController extends Controller
 {
-    public function __construct(private readonly TokenDecrypter $tokenDecrypter)
-    {
+    public function __construct(
+        private readonly TokenDecrypter $tokenDecrypter,
+        private readonly FindAccount $findAccount
+    ) {
     }
 
     public function handle(HttpRequest $httpRequest): HttpResponse
@@ -39,6 +44,12 @@ class GeneratePasswordController extends Controller
 
             if (!$decryptedToken) {
                 return HttpHelpers::badRequest(new InvalidParamError('token'));
+            }
+
+            ['email' => $email, 'password' => $password] = $decryptedToken;
+
+            if (!$this->findAccount->getAccount(new FindAccountModel($email, $password))) {
+                return HttpHelpers::badRequest(new UnauthorizedError($token));
             }
 
             return HttpHelpers::success("PASS");
