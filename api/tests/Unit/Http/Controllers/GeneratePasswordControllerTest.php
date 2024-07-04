@@ -2,11 +2,11 @@
 
 namespace Tests\Unit\Http\Controllers;
 
+use App\Domain\Models\FindAccountModel;
 use App\Domain\UseCases\FindAccount;
 use App\Exceptions\InternalServerError;
 use App\Exceptions\InvalidParamError;
 use App\Exceptions\MissingParamError;
-use App\Exceptions\UnauthenticatedError;
 use App\Exceptions\UnauthorizedError;
 use App\Http\Controllers\GeneratePasswordController;
 use App\Http\Protocols\HttpRequest;
@@ -37,6 +37,11 @@ class GeneratePasswordControllerTest extends TestCase
             'email' => 'any_email',
             'password' => 'any_password'
         ];
+    }
+
+    private function mockAccount(array $tokenAccount)
+    {
+        return new FindAccountModel($tokenAccount['email'], $tokenAccount['password']);
     }
 
     public function testEnsureCorrectInstance()
@@ -195,5 +200,23 @@ class GeneratePasswordControllerTest extends TestCase
         $this->assertEquals(500, $httpResponse->getStatusCode());
         $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
+
+    public function testShouldFindAccountHaveBeenCalledWithCorrectFindAccountModel()
+    {
+        $this->tokenDecrypterStub->method('decrypt')
+            ->willReturn($this->mockTokenAccount());
+
+        $this->findAccountStub->expects($this->once())
+            ->method('getAccount')
+            ->with($this->mockAccount($this->mockTokenAccount()));
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'size' => 1
+        ]);
+
+        $this->sut->handle($httpRequest);
     }
 }
