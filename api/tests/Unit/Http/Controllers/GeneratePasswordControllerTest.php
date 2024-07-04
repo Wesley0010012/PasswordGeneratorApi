@@ -2,8 +2,10 @@
 
 namespace Tests\Unit\Http\Controllers;
 
+use App\Domain\Models\AccountModel;
 use App\Domain\Models\FindAccountModel;
 use App\Domain\UseCases\FindAccount;
+use App\Domain\UseCases\GeneratePassword;
 use App\Exceptions\InternalServerError;
 use App\Exceptions\InvalidParamError;
 use App\Exceptions\MissingParamError;
@@ -19,15 +21,18 @@ class GeneratePasswordControllerTest extends TestCase
     private GeneratePasswordController $sut;
     private TokenDecrypter $tokenDecrypterStub;
     private FindAccount $findAccountStub;
+    private GeneratePassword $generatePasswordStub;
 
     public function setUp(): void
     {
         $this->tokenDecrypterStub = $this->createMock(TokenDecrypter::class);
         $this->findAccountStub = $this->createMock(FindAccount::class);
+        $this->generatePasswordStub = $this->createMock(GeneratePassword::class);
 
         $this->sut = new GeneratePasswordController(
             $this->tokenDecrypterStub,
-            $this->findAccountStub
+            $this->findAccountStub,
+            $this->generatePasswordStub
         );
     }
 
@@ -42,6 +47,11 @@ class GeneratePasswordControllerTest extends TestCase
     private function mockAccount(array $tokenAccount)
     {
         return new FindAccountModel($tokenAccount['email'], $tokenAccount['password']);
+    }
+
+    private function mockAccountModel()
+    {
+        return new AccountModel();
     }
 
     public function testEnsureCorrectInstance()
@@ -149,7 +159,7 @@ class GeneratePasswordControllerTest extends TestCase
 
         $httpResponse = $this->sut->handle($httpRequest);
 
-        $error = new InternalServerError('token');
+        $error = new InternalServerError();
 
         $this->assertEquals(500, $httpResponse->getStatusCode());
         $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
@@ -218,5 +228,31 @@ class GeneratePasswordControllerTest extends TestCase
         ]);
 
         $this->sut->handle($httpRequest);
+    }
+
+    public function testShouldReturn500IfGeneratePasswordThrows()
+    {
+        $this->tokenDecrypterStub->method('decrypt')
+            ->willReturn($this->mockTokenAccount());
+
+        $this->findAccountStub->method('getAccount')
+            ->willReturn($this->mockAccountModel());
+
+        $this->generatePasswordStub->method('generate')
+            ->willThrowException(new Error());
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'size' => 1
+        ]);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new InternalServerError();
+
+        $this->assertEquals(500, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 }
