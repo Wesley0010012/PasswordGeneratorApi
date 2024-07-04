@@ -173,4 +173,27 @@ class GeneratePasswordControllerTest extends TestCase
         $this->assertInstanceOf(UnauthorizedError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
+
+    public function testShouldReturn500IfFindAccountThrows()
+    {
+        $this->tokenDecrypterStub->method('decrypt')
+            ->willReturn($this->mockTokenAccount());
+
+        $this->findAccountStub->method('getAccount')
+            ->willThrowException(new Error());
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'size' => 1
+        ]);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new InternalServerError('token');
+
+        $this->assertEquals(500, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
 }
