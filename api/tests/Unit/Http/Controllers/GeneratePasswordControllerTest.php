@@ -54,6 +54,11 @@ class GeneratePasswordControllerTest extends TestCase
         return new AccountModel();
     }
 
+    private function mockGeneratedPassword()
+    {
+        return 'valid_password_output';
+    }
+
     public function testEnsureCorrectInstance()
     {
         $this->assertInstanceOf(GeneratePasswordController::class, $this->sut);
@@ -275,5 +280,32 @@ class GeneratePasswordControllerTest extends TestCase
             ->with($httpRequest->getBody()['size']);
 
         $this->sut->handle($httpRequest);
+    }
+
+    public function testShouldReturn200OnSuccess()
+    {
+        $this->tokenDecrypterStub->method('decrypt')
+            ->willReturn($this->mockTokenAccount());
+
+        $this->findAccountStub->method('getAccount')
+            ->willReturn($this->mockAccountModel());
+
+        $this->generatePasswordStub->method('generate')
+            ->willReturn($this->mockGeneratedPassword());
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'size' => 1
+        ]);
+
+        $this->generatePasswordStub->expects($this->once())
+            ->method('generate')
+            ->with($httpRequest->getBody()['size']);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $this->assertEquals(200, $httpResponse->getStatusCode());
+        $this->assertEquals(['password' => $this->mockGeneratedPassword()], $httpResponse->getBody());
     }
 }
