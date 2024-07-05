@@ -23,4 +23,13 @@ class TokenDecrypterAdapterTest extends TestCase
     {
         $this->assertFalse($this->sut->decrypt('invalid_token'));
     }
+
+    public function testShouldReturnAnArrayOnSuccess()
+    {
+        $result = $this->sut->decrypt(base64_encode('valid_email,valid_password'));
+
+        $this->assertNotFalse($result);
+        $this->assertEquals('valid_email', $result['email']);
+        $this->assertEquals('valid_password', $result['password']);
+    }
 }
