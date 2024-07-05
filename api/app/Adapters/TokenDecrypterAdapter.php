@@ -11,11 +11,11 @@ class TokenDecrypterAdapter implements TokenDecrypter
     {
         $decryptedToken = base64_decode($token);
 
-        if (!strstr('email', $decryptedToken) || !strstr('password', $decryptedToken)) {
+        $explodedToken = @explode(',', $decryptedToken);
+
+        if(sizeof($explodedToken) != 2) {
             return false;
         }
-
-        $explodedToken = explode(',', $decryptedToken);
 
         return [
             'email' => $explodedToken[0],
