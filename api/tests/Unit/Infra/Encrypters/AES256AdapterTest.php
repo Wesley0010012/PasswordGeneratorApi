@@ -20,12 +20,22 @@ class AES256AdapterTest extends TestCase
         return 'UGcYWM9mou1Mych0oPNPEQ==';
     }
 
+    private function mockPlaintextString()
+    {
+        return 'ABCD1234';
+    }
+
     public function testShouldReturnTheCorrectEncryptedPasswordOnSuccess()
     {
-        $plaintext = "ABCD1234";
-
-        $result = $this->sut->encrypt($plaintext);
+        $result = $this->sut->encrypt($this->mockPlaintextString());
 
         $this->assertEquals($this->mockEncryptedString(), $result);
+    }
+
+    public function testShouldReturnTheDecryptedPasswordOnSuccess()
+    {
+        $result = $this->sut->decrypt($this->mockEncryptedString());
+
+        $this->assertEquals($this->mockPlaintextString(), $result);
     }
 }
