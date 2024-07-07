@@ -28,4 +28,9 @@ abstract class MockReturnSamples
     {
         return '{"error":"Invalid param: token"}';
     }
+
+    static function mockInvalidSizeReturn(): string
+    {
+        return '{"error":"Invalid param: size"}';
+    }
 }
