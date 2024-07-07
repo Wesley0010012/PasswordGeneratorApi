@@ -20,10 +20,10 @@ class GeneratePasswordRouteIntegrationTest extends TestCase
         $this->password = "password";
     }
 
-    private function mockAccount(bool $token = true, bool $validSize = true): array
+    private function mockRequest(bool $validToken = true, bool $validSize = true): array
     {
         return [
-            "token" => ($token ? "valid_email@email.com" : "invalid_email"),
+            "token" => ($validToken ? $this->mockToken() : 'invalid_token'),
             "size" => ($validSize ? 32 : 0)
         ];
     }
@@ -53,5 +53,13 @@ class GeneratePasswordRouteIntegrationTest extends TestCase
         $response = $this->post('/api/password/generate-password');
 
         $this->assertEquals(400, $response->getStatusCode());
+    }
+
+    public function testShouldReturn400IfInvalidTokenWasProvided()
+    {
+        $response = $this->post('/api/password/generate-password', $this->mockRequest(validToken: false));
+
+        $this->assertEquals(400, $response->getStatusCode());
+        $this->assertEquals(MockReturnSamples::mockInvalidTokenReturn(), $response->getContent());
     }
 }

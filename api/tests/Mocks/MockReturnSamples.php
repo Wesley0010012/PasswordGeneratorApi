@@ -23,4 +23,9 @@ abstract class MockReturnSamples
     {
         return '{"error":"Unauthenticated account with email: valid_email@email.com"}';
     }
+
+    static function mockInvalidTokenReturn(): string
+    {
+        return '{"error":"Invalid param: token"}';
+    }
 }
