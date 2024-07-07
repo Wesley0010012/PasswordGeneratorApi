@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\Protocols\Decrypter;
 use App\Domain\Models\FindAccountModel;
 use App\Domain\UseCases\FindAccount;
 use App\Domain\UseCases\GeneratePassword;
@@ -19,6 +20,7 @@ class GeneratePasswordController extends Controller
     public function __construct(
         private readonly TokenDecrypter $tokenDecrypter,
         private readonly FindAccount $findAccount,
+        private readonly Decrypter $decrypter,
         private readonly GeneratePassword $generatePassword
     ) {
     }
@@ -49,6 +51,7 @@ class GeneratePasswordController extends Controller
             }
 
             ['email' => $email, 'password' => $password] = $decryptedToken;
+            $password = $this->decrypter->decrypt($password);
 
             if (!$this->findAccount->getAccount(new FindAccountModel($email, $password))) {
                 return HttpHelpers::badRequest(new UnauthorizedError($token));
