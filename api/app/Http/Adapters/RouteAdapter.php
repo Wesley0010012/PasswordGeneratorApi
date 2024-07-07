@@ -31,7 +31,9 @@ class RouteAdapter implements RouteAdapterInterface
             "name" => $request['name'] ?? '',
             "email" => $request['email'] ?? '',
             "password" => $request['password'] ?? '',
-            "passwordConfirmation" => $request['passwordConfirmation'] ?? ''
+            "passwordConfirmation" => $request['passwordConfirmation'] ?? '',
+            "token" => $request['token'] ?? '',
+            "size" => $request['size'] ?? 0
         ]);
 
         $httpResponse = $controller->handle($httpRequest);
