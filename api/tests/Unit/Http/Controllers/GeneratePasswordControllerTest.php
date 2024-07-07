@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Http\Controllers;
 
+use App\Data\Protocols\Decrypter;
 use App\Domain\Models\AccountModel;
 use App\Domain\Models\FindAccountModel;
 use App\Domain\UseCases\FindAccount;
@@ -21,6 +22,7 @@ class GeneratePasswordControllerTest extends TestCase
     private GeneratePasswordController $sut;
     private TokenDecrypter $tokenDecrypterStub;
     private FindAccount $findAccountStub;
+    private Decrypter $decrypterStub;
     private GeneratePassword $generatePasswordStub;
 
     public function setUp(): void
@@ -28,10 +30,12 @@ class GeneratePasswordControllerTest extends TestCase
         $this->tokenDecrypterStub = $this->createMock(TokenDecrypter::class);
         $this->findAccountStub = $this->createMock(FindAccount::class);
         $this->generatePasswordStub = $this->createMock(GeneratePassword::class);
+        $this->decrypterStub = $this->createMock(Decrypter::class);
 
         $this->sut = new GeneratePasswordController(
             $this->tokenDecrypterStub,
             $this->findAccountStub,
+            $this->decrypterStub,
             $this->generatePasswordStub
         );
     }
@@ -46,7 +50,7 @@ class GeneratePasswordControllerTest extends TestCase
 
     private function mockAccount(array $tokenAccount)
     {
-        return new FindAccountModel($tokenAccount['email'], $tokenAccount['password']);
+        return new FindAccountModel($tokenAccount['email'], $this->mockCypheredPassword());
     }
 
     private function mockAccountModel()
@@ -57,6 +61,11 @@ class GeneratePasswordControllerTest extends TestCase
     private function mockGeneratedPassword()
     {
         return 'valid_password_output';
+    }
+
+    private function mockCypheredPassword()
+    {
+        return 'cyphered_password';
     }
 
     public function testEnsureCorrectInstance()
@@ -171,10 +180,36 @@ class GeneratePasswordControllerTest extends TestCase
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 
+    public function testShouldReturn500IfDecrypterThrows()
+    {
+        $this->tokenDecrypterStub->method('decrypt')
+            ->willReturn($this->mockTokenAccount());
+
+        $this->decrypterStub->method('decrypt')
+            ->willThrowException(new Error());
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'size' => 1
+        ]);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new InternalServerError();
+
+        $this->assertEquals(500, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
+
     public function testShouldReturn400IfTokenAccountWasNotFinded()
     {
         $this->tokenDecrypterStub->method('decrypt')
             ->willReturn($this->mockTokenAccount());
+
+        $this->decrypterStub->method('decrypt')
+            ->willReturn($this->mockCypheredPassword());
 
         $this->findAccountStub->method('getAccount')
             ->willReturn(null);
@@ -199,6 +234,9 @@ class GeneratePasswordControllerTest extends TestCase
         $this->tokenDecrypterStub->method('decrypt')
             ->willReturn($this->mockTokenAccount());
 
+        $this->decrypterStub->method('decrypt')
+            ->willReturn($this->mockCypheredPassword());
+
         $this->findAccountStub->method('getAccount')
             ->willThrowException(new Error());
 
@@ -222,6 +260,9 @@ class GeneratePasswordControllerTest extends TestCase
         $this->tokenDecrypterStub->method('decrypt')
             ->willReturn($this->mockTokenAccount());
 
+        $this->decrypterStub->method('decrypt')
+            ->willReturn($this->mockCypheredPassword());
+
         $this->findAccountStub->expects($this->once())
             ->method('getAccount')
             ->with($this->mockAccount($this->mockTokenAccount()));
@@ -239,6 +280,9 @@ class GeneratePasswordControllerTest extends TestCase
     {
         $this->tokenDecrypterStub->method('decrypt')
             ->willReturn($this->mockTokenAccount());
+
+        $this->decrypterStub->method('decrypt')
+            ->willReturn($this->mockCypheredPassword());
 
         $this->findAccountStub->method('getAccount')
             ->willReturn($this->mockAccountModel());
@@ -266,6 +310,9 @@ class GeneratePasswordControllerTest extends TestCase
         $this->tokenDecrypterStub->method('decrypt')
             ->willReturn($this->mockTokenAccount());
 
+        $this->decrypterStub->method('decrypt')
+            ->willReturn($this->mockCypheredPassword());
+
         $this->findAccountStub->method('getAccount')
             ->willReturn($this->mockAccountModel());
 
@@ -286,6 +333,9 @@ class GeneratePasswordControllerTest extends TestCase
     {
         $this->tokenDecrypterStub->method('decrypt')
             ->willReturn($this->mockTokenAccount());
+
+        $this->decrypterStub->method('decrypt')
+            ->willReturn($this->mockCypheredPassword());
 
         $this->findAccountStub->method('getAccount')
             ->willReturn($this->mockAccountModel());
