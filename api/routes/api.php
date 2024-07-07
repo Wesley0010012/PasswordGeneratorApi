@@ -2,6 +2,7 @@
 
 use App\Http\Factories\SignUpControllerFactory;
 use App\Http\Adapters\RouteAdapter;
+use App\Http\Factories\GeneratePasswordFactory;
 use App\Http\Factories\SignInControllerFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -23,4 +24,8 @@ Route::post('/account/signup', function (Request $request) {
 
 Route::post('/account/signin', function (Request $request) {
     return (new RouteAdapter())->adapt($request, (new SignInControllerFactory)->make());
+});
+
+Route::post('/password/generate-password', function (Request $request) {
+    return (new RouteAdapter())->adapt($request, (new GeneratePasswordFactory)->make());
 });
