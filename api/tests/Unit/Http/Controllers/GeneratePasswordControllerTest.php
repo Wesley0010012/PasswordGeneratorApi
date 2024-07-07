@@ -203,6 +203,24 @@ class GeneratePasswordControllerTest extends TestCase
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 
+    public function testShouldDecrypterHaveBeenCalledWithCorrectPassword()
+    {
+        $this->tokenDecrypterStub->method('decrypt')
+            ->willReturn($this->mockTokenAccount());
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'size' => 1
+        ]);
+
+        $this->decrypterStub->expects($this->once())
+            ->method('decrypt')
+            ->with($this->mockTokenAccount()['password']);
+
+        $this->sut->handle($httpRequest);
+    }
+
     public function testShouldReturn400IfTokenAccountWasNotFinded()
     {
         $this->tokenDecrypterStub->method('decrypt')
