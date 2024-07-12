@@ -26,7 +26,7 @@ class SavePasswordController extends Controller
         try {
             $body = $httpRequest->getBody();
 
-            $requiredParams = ['token', 'email', 'password', 'domain'];
+            $requiredParams = ['token', 'account', 'password', 'domain'];
 
             foreach ($requiredParams as $param) {
                 if (!$body[$param]) {
@@ -36,7 +36,7 @@ class SavePasswordController extends Controller
 
             [
                 'token' => $token,
-                'email' => $email,
+                'account' => $account,
                 'password' => $password,
                 'domain' => $domain
             ] = $body;

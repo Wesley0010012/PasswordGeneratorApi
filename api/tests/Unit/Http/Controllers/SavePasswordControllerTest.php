@@ -48,7 +48,7 @@ class SavePasswordControllerTest extends TestCase
         $httpRequest = new HttpRequest();
         $httpRequest->setBody([
             'token' => '',
-            'email' => 'any_email@email.com',
+            'account' => 'any_email@email.com',
             'password' => 'any_password',
             'domain' => 'any_domain'
         ]);
@@ -67,14 +67,14 @@ class SavePasswordControllerTest extends TestCase
         $httpRequest = new HttpRequest();
         $httpRequest->setBody([
             'token' => 'any_token',
-            'email' => '',
+            'account' => '',
             'password' => 'any_password',
             'domain' => 'any_domain'
         ]);
 
         $httpResponse = $this->sut->handle($httpRequest);
 
-        $error = new MissingParamError('email');
+        $error = new MissingParamError('account');
 
         $this->assertEquals(400, $httpResponse->getStatusCode());
         $this->assertInstanceOf(MissingParamError::class, $httpResponse->getBody());
@@ -86,7 +86,7 @@ class SavePasswordControllerTest extends TestCase
         $httpRequest = new HttpRequest();
         $httpRequest->setBody([
             'token' => 'any_token',
-            'email' => 'any_email@email.com',
+            'account' => 'any_email@email.com',
             'password' => '',
             'domain' => 'any_domain'
         ]);
@@ -105,7 +105,7 @@ class SavePasswordControllerTest extends TestCase
         $httpRequest = new HttpRequest();
         $httpRequest->setBody([
             'token' => 'any_token',
-            'email' => 'any_email@email.com',
+            'account' => 'any_email@email.com',
             'password' => 'any_password',
             'domain' => ''
         ]);
@@ -127,7 +127,7 @@ class SavePasswordControllerTest extends TestCase
         $httpRequest = new HttpRequest();
         $httpRequest->setBody([
             'token' => 'any_token',
-            'email' => 'any_email@email.com',
+            'account' => 'any_email@email.com',
             'password' => 'any_password',
             'domain' => 'any_domain'
         ]);
@@ -149,7 +149,7 @@ class SavePasswordControllerTest extends TestCase
         $httpRequest = new HttpRequest();
         $httpRequest->setBody([
             'token' => 'any_token',
-            'email' => 'any_email@email.com',
+            'account' => 'any_email@email.com',
             'password' => 'any_password',
             'domain' => 'any_domain'
         ]);
@@ -168,7 +168,7 @@ class SavePasswordControllerTest extends TestCase
         $httpRequest = new HttpRequest();
         $httpRequest->setBody([
             'token' => 'any_token',
-            'email' => 'any_email@email.com',
+            'account' => 'any_email@email.com',
             'password' => 'any_password',
             'domain' => 'any_domain'
         ]);
@@ -191,7 +191,7 @@ class SavePasswordControllerTest extends TestCase
         $httpRequest = new HttpRequest();
         $httpRequest->setBody([
             'token' => 'any_token',
-            'email' => 'any_email@email.com',
+            'account' => 'any_email@email.com',
             'password' => 'any_password',
             'domain' => 'any_domain'
         ]);
