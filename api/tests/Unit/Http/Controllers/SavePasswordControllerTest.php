@@ -3,17 +3,24 @@
 namespace Tests\Unit\Http\Controllers;
 
 use App\Exceptions\MissingParamError;
+use App\Exceptions\UnauthorizedError;
 use App\Http\Controllers\SavePasswordController;
 use App\Http\Protocols\HttpRequest;
+use App\Http\Protocols\TokenDecrypter;
 use Tests\TestCase;
 
 class SavePasswordControllerTest extends TestCase
 {
     private SavePasswordController $sut;
+    private TokenDecrypter $tokenDecrypterStub;
 
     public function setUp(): void
     {
-        $this->sut = new SavePasswordController();
+        $this->tokenDecrypterStub = $this->createMock(TokenDecrypter::class);
+
+        $this->sut = new SavePasswordController(
+            $this->tokenDecrypterStub
+        );
     }
 
     public function testEnsureCorrectInstance()
@@ -94,6 +101,28 @@ class SavePasswordControllerTest extends TestCase
 
         $this->assertEquals(400, $httpResponse->getStatusCode());
         $this->assertInstanceOf(MissingParamError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
+
+    public function testShouldReturn400IfInvalidTokenWasProvided()
+    {
+        $this->tokenDecrypterStub->method('decrypt')
+            ->willReturn(false);
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'email' => 'any_email@email.com',
+            'password' => 'any_password',
+            'domain' => 'any_domain'
+        ]);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new UnauthorizedError($httpRequest->getBody()['token']);
+
+        $this->assertEquals(400, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(UnauthorizedError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 }
