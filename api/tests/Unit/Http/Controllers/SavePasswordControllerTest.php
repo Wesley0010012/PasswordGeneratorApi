@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Http\Controllers;
 
+use App\Domain\UseCases\FindAccount;
 use App\Exceptions\InternalServerError;
 use App\Exceptions\MissingParamError;
 use App\Exceptions\UnauthorizedError;
@@ -15,14 +16,25 @@ class SavePasswordControllerTest extends TestCase
 {
     private SavePasswordController $sut;
     private TokenDecrypter $tokenDecrypterStub;
+    private FindAccount $findAccountStub;
 
     public function setUp(): void
     {
         $this->tokenDecrypterStub = $this->createMock(TokenDecrypter::class);
+        $this->findAccountStub = $this->createMock(FindAccount::class);
 
         $this->sut = new SavePasswordController(
-            $this->tokenDecrypterStub
+            $this->tokenDecrypterStub,
+            $this->findAccountStub
         );
+    }
+
+    private function mockAccount(): array
+    {
+        return [
+            'email' => 'any_email@email.com',
+            'password' => 'any_password'
+        ];
     }
 
     public function testEnsureCorrectInstance()
@@ -165,5 +177,30 @@ class SavePasswordControllerTest extends TestCase
             ->with($httpRequest->getBody()['token']);
 
         $this->sut->handle($httpRequest);
+    }
+
+    public function testShouldReturn400IfTokenAccountWasNotFinded()
+    {
+        $this->tokenDecrypterStub->method('decrypt')
+            ->willReturn($this->mockAccount());
+
+        $this->findAccountStub->method('getAccount')
+            ->willReturn(null);
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'email' => 'any_email@email.com',
+            'password' => 'any_password',
+            'domain' => 'any_domain'
+        ]);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new UnauthorizedError($httpRequest->getBody()['token']);
+
+        $this->assertEquals(400, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(UnauthorizedError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 }
