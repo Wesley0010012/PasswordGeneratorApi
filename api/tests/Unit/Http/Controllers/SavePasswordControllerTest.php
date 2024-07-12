@@ -149,4 +149,21 @@ class SavePasswordControllerTest extends TestCase
         $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
+
+    public function testShouldTokenDecrypterHaveBeenCalledWithCorrectToken()
+    {
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'email' => 'any_email@email.com',
+            'password' => 'any_password',
+            'domain' => 'any_domain'
+        ]);
+
+        $this->tokenDecrypterStub->expects($this->once())
+            ->method('decrypt')
+            ->with($httpRequest->getBody()['token']);
+
+        $this->sut->handle($httpRequest);
+    }
 }
