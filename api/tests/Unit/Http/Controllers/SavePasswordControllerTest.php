@@ -2,11 +2,13 @@
 
 namespace Tests\Unit\Http\Controllers;
 
+use App\Exceptions\InternalServerError;
 use App\Exceptions\MissingParamError;
 use App\Exceptions\UnauthorizedError;
 use App\Http\Controllers\SavePasswordController;
 use App\Http\Protocols\HttpRequest;
 use App\Http\Protocols\TokenDecrypter;
+use Error;
 use Tests\TestCase;
 
 class SavePasswordControllerTest extends TestCase
@@ -123,6 +125,28 @@ class SavePasswordControllerTest extends TestCase
 
         $this->assertEquals(400, $httpResponse->getStatusCode());
         $this->assertInstanceOf(UnauthorizedError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
+
+    public function testShouldReturn500IfTokenDecrypterThrows()
+    {
+        $this->tokenDecrypterStub->method('decrypt')
+            ->willThrowException(new Error());
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'email' => 'any_email@email.com',
+            'password' => 'any_password',
+            'domain' => 'any_domain'
+        ]);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new InternalServerError();
+
+        $this->assertEquals(500, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 }
