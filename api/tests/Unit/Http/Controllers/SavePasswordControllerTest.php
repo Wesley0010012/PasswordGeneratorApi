@@ -39,4 +39,23 @@ class SavePasswordControllerTest extends TestCase
         $this->assertInstanceOf(MissingParamError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
+
+    public function testEnsureReturn400IfNoEmailWasProvided()
+    {
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'email' => '',
+            'password' => 'any_password',
+            'domain' => 'any_domain'
+        ]);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new MissingParamError('email');
+
+        $this->assertEquals(400, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(MissingParamError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
 }
