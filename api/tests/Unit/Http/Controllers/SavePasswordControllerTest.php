@@ -4,6 +4,7 @@ namespace Tests\Unit\Http\Controllers;
 
 use App\Domain\UseCases\FindAccount;
 use App\Exceptions\InternalServerError;
+use App\Exceptions\InvalidParamError;
 use App\Exceptions\MissingParamError;
 use App\Exceptions\UnauthorizedError;
 use App\Http\Controllers\SavePasswordController;
@@ -133,10 +134,10 @@ class SavePasswordControllerTest extends TestCase
 
         $httpResponse = $this->sut->handle($httpRequest);
 
-        $error = new UnauthorizedError($httpRequest->getBody()['token']);
+        $error = new InvalidParamError($httpRequest->getBody()['token']);
 
         $this->assertEquals(400, $httpResponse->getStatusCode());
-        $this->assertInstanceOf(UnauthorizedError::class, $httpResponse->getBody());
+        $this->assertInstanceOf(InvalidParamError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 

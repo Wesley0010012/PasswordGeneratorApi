@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Models\FindAccountModel;
 use App\Domain\UseCases\FindAccount;
+use App\Exceptions\InvalidParamError;
 use App\Exceptions\MissingParamError;
 use App\Exceptions\UnauthorizedError;
 use App\Http\Helpers\HttpHelpers;
@@ -43,7 +44,7 @@ class SavePasswordController extends Controller
             $decryptedToken = $this->tokenDecrypter->decrypt($token);
 
             if (!$decryptedToken) {
-                return HttpHelpers::badRequest(new UnauthorizedError($token));
+                return HttpHelpers::badRequest(new InvalidParamError($token));
             }
 
             [
