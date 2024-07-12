@@ -28,7 +28,7 @@ class SavePasswordControllerTest extends TestCase
         $this->assertInstanceOf(SavePasswordController::class, $this->sut);
     }
 
-    public function testEnsureReturn400IfNoTokenWasProvided()
+    public function testShouldReturn400IfNoTokenWasProvided()
     {
         $httpRequest = new HttpRequest();
         $httpRequest->setBody([
@@ -47,7 +47,7 @@ class SavePasswordControllerTest extends TestCase
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 
-    public function testEnsureReturn400IfNoEmailWasProvided()
+    public function testShouldReturn400IfNoEmailWasProvided()
     {
         $httpRequest = new HttpRequest();
         $httpRequest->setBody([
@@ -66,7 +66,7 @@ class SavePasswordControllerTest extends TestCase
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 
-    public function testEnsureReturn400IfNoPasswordWasProvided()
+    public function testShouldReturn400IfNoPasswordWasProvided()
     {
         $httpRequest = new HttpRequest();
         $httpRequest->setBody([
@@ -85,7 +85,7 @@ class SavePasswordControllerTest extends TestCase
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 
-    public function testEnsureReturn400IfNoDomainWasProvided()
+    public function testShouldReturn400IfNoDomainWasProvided()
     {
         $httpRequest = new HttpRequest();
         $httpRequest->setBody([
