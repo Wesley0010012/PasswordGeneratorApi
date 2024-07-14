@@ -2,11 +2,14 @@
 
 namespace Tests\Unit\Http\Controllers;
 
+use App\Domain\Models\AccountModel;
 use App\Domain\Models\FindAccountModel;
+use App\Domain\UseCases\CheckPassword;
 use App\Domain\UseCases\FindAccount;
 use App\Exceptions\InternalServerError;
 use App\Exceptions\InvalidParamError;
 use App\Exceptions\MissingParamError;
+use App\Exceptions\PasswordAccountExistsError;
 use App\Exceptions\UnauthorizedError;
 use App\Http\Controllers\SavePasswordController;
 use App\Http\Protocols\HttpRequest;
@@ -19,15 +22,18 @@ class SavePasswordControllerTest extends TestCase
     private SavePasswordController $sut;
     private TokenDecrypter $tokenDecrypterStub;
     private FindAccount $findAccountStub;
+    private CheckPassword $checkPasswordStub;
 
     public function setUp(): void
     {
         $this->tokenDecrypterStub = $this->createMock(TokenDecrypter::class);
         $this->findAccountStub = $this->createMock(FindAccount::class);
+        $this->checkPasswordStub = $this->createMock(CheckPassword::class);
 
         $this->sut = new SavePasswordController(
             $this->tokenDecrypterStub,
-            $this->findAccountStub
+            $this->findAccountStub,
+            $this->checkPasswordStub
         );
     }
 
@@ -37,6 +43,14 @@ class SavePasswordControllerTest extends TestCase
             'email' => 'any_email@email.com',
             'password' => 'any_password'
         ];
+    }
+
+    private function mockAccountModel(): AccountModel
+    {
+        $accountModel = new AccountModel();
+        $accountModel->setId(1);
+
+        return $accountModel;
     }
 
     public function testEnsureCorrectInstance()
@@ -251,5 +265,33 @@ class SavePasswordControllerTest extends TestCase
             ->with(new FindAccountModel($tokenAccount['email'], $tokenAccount['password']));
 
         $this->sut->handle($httpRequest);
+    }
+
+    public function testShouldReturn400IfPasswordAccountExists()
+    {
+        $this->tokenDecrypterStub->method('decrypt')
+            ->willReturn($this->mockAccount());
+
+        $this->findAccountStub->method('getAccount')
+            ->willReturn($this->mockAccountModel());
+
+        $this->checkPasswordStub->method('check')
+            ->willReturn(true);
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'account' => 'any_email@email.com',
+            'password' => 'any_password',
+            'domain' => 'any_domain'
+        ]);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new PasswordAccountExistsError($httpRequest->getBody()['account'], $httpRequest->getBody()['domain']);
+
+        $this->assertEquals(400, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(PasswordAccountExistsError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 }
