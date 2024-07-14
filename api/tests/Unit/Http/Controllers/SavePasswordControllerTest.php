@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Http\Controllers;
 
+use App\Domain\Models\FindAccountModel;
 use App\Domain\UseCases\FindAccount;
 use App\Exceptions\InternalServerError;
 use App\Exceptions\InvalidParamError;
@@ -228,5 +229,27 @@ class SavePasswordControllerTest extends TestCase
         $this->assertEquals(500, $httpResponse->getStatusCode());
         $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
+
+    public function testShouldFindAccountHaveBeenCalledWithCorrectAccountModel()
+    {
+        $this->tokenDecrypterStub->method('decrypt')
+            ->willReturn($this->mockAccount());
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'account' => 'any_email@email.com',
+            'password' => 'any_password',
+            'domain' => 'any_domain'
+        ]);
+
+        $tokenAccount = $this->mockAccount();
+
+        $this->findAccountStub->expects($this->once())
+            ->method('getAccount')
+            ->with(new FindAccountModel($tokenAccount['email'], $tokenAccount['password']));
+
+        $this->sut->handle($httpRequest);
     }
 }
