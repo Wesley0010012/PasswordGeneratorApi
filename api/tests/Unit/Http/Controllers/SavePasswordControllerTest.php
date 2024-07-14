@@ -4,6 +4,7 @@ namespace Tests\Unit\Http\Controllers;
 
 use App\Domain\Models\AccountModel;
 use App\Domain\Models\FindAccountModel;
+use App\Domain\Models\FindPasswordModel;
 use App\Domain\UseCases\CheckPassword;
 use App\Domain\UseCases\FindAccount;
 use App\Exceptions\InternalServerError;
@@ -295,7 +296,7 @@ class SavePasswordControllerTest extends TestCase
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 
-    public function testShouldReturn500IfFindPasswordThrows()
+    public function testShouldReturn500IfCheckPasswordThrows()
     {
         $this->tokenDecrypterStub->method('decrypt')
             ->willReturn($this->mockAccount());
@@ -321,5 +322,28 @@ class SavePasswordControllerTest extends TestCase
         $this->assertEquals(500, $httpResponse->getStatusCode());
         $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
+
+    public function testShouldCheckPasswordHaveBeenCalledWithCorrectFindPasswordModel()
+    {
+        $this->tokenDecrypterStub->method('decrypt')
+            ->willReturn($this->mockAccount());
+
+        $this->findAccountStub->method('getAccount')
+            ->willReturn($this->mockAccountModel());
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'account' => 'any_email@email.com',
+            'password' => 'any_password',
+            'domain' => 'any_domain'
+        ]);
+
+        $this->checkPasswordStub->expects($this->once())
+            ->method('check')
+            ->with(new FindPasswordModel(($this->mockAccountModel())->getId(), $httpRequest->getBody()['account'], $httpRequest->getBody()['domain']));
+
+        $this->sut->handle($httpRequest);
     }
 }
