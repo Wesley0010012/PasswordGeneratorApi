@@ -5,6 +5,7 @@ namespace Tests\Unit\Http\Controllers;
 use App\Domain\Models\AccountModel;
 use App\Domain\Models\FindAccountModel;
 use App\Domain\Models\FindPasswordModel;
+use App\Domain\UseCases\AddPassword;
 use App\Domain\UseCases\CheckPassword;
 use App\Domain\UseCases\FindAccount;
 use App\Exceptions\InternalServerError;
@@ -24,17 +25,20 @@ class SavePasswordControllerTest extends TestCase
     private TokenDecrypter $tokenDecrypterStub;
     private FindAccount $findAccountStub;
     private CheckPassword $checkPasswordStub;
+    private AddPassword $addPasswordStub;
 
     public function setUp(): void
     {
         $this->tokenDecrypterStub = $this->createMock(TokenDecrypter::class);
         $this->findAccountStub = $this->createMock(FindAccount::class);
         $this->checkPasswordStub = $this->createMock(CheckPassword::class);
+        $this->addPasswordStub = $this->createMock(AddPassword::class);
 
         $this->sut = new SavePasswordController(
             $this->tokenDecrypterStub,
             $this->findAccountStub,
-            $this->checkPasswordStub
+            $this->checkPasswordStub,
+            $this->addPasswordStub
         );
     }
 
@@ -345,5 +349,36 @@ class SavePasswordControllerTest extends TestCase
             ->with(new FindPasswordModel(($this->mockAccountModel())->getId(), $httpRequest->getBody()['account'], $httpRequest->getBody()['domain']));
 
         $this->sut->handle($httpRequest);
+    }
+
+    public function testShouldReturn500IfAddPasswordThrows()
+    {
+        $this->tokenDecrypterStub->method('decrypt')
+            ->willReturn($this->mockAccount());
+
+        $this->findAccountStub->method('getAccount')
+            ->willReturn($this->mockAccountModel());
+
+        $this->checkPasswordStub->method('check')
+            ->willReturn(false);
+
+        $this->addPasswordStub->method('add')
+            ->willThrowException(new Error());
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'account' => 'any_email@email.com',
+            'password' => 'any_password',
+            'domain' => 'any_domain'
+        ]);
+
+        $httpResponse = $this->sut->handle($httpRequest);
+
+        $error = new InternalServerError();
+
+        $this->assertEquals(500, $httpResponse->getStatusCode());
+        $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
+        $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
     }
 }
