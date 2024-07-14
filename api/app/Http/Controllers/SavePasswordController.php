@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Models\FindAccountModel;
+use App\Domain\Models\FindPasswordModel;
 use App\Domain\UseCases\FindAccount;
+use App\Domain\UseCases\CheckPassword;
 use App\Exceptions\InvalidParamError;
 use App\Exceptions\MissingParamError;
+use App\Exceptions\PasswordAccountExistsError;
 use App\Exceptions\UnauthorizedError;
 use App\Http\Helpers\HttpHelpers;
 use App\Http\Protocols\HttpRequest;
@@ -17,7 +20,8 @@ class SavePasswordController extends Controller
 {
     public function __construct(
         private readonly TokenDecrypter $tokenDecrypter,
-        private readonly FindAccount $findAccount
+        private readonly FindAccount $findAccount,
+        private readonly CheckPassword $checkPassword
     ) {
     }
 
@@ -49,13 +53,17 @@ class SavePasswordController extends Controller
 
             [
                 'email' => $email,
-                'password' => $password
+                'password' => $passwordToken
             ] = $decryptedToken;
 
-            $account = $this->findAccount->getAccount(new FindAccountModel($email, $password));
+            $accountModel = $this->findAccount->getAccount(new FindAccountModel($email, $passwordToken));
 
-            if (!$account) {
+            if (!$accountModel) {
                 return HttpHelpers::badRequest(new UnauthorizedError($token));
+            }
+
+            if ($this->checkPassword->check(new FindPasswordModel($accountModel->getId(), $account, $domain))) {
+                return HttpHelpers::badRequest(new PasswordAccountExistsError($account, $domain));
             }
 
             return HttpHelpers::success('success');
