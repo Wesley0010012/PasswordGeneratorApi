@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Models\AddPasswordModel;
 use App\Domain\Models\FindAccountModel;
 use App\Domain\Models\FindPasswordModel;
+use App\Domain\UseCases\AddPassword;
 use App\Domain\UseCases\FindAccount;
 use App\Domain\UseCases\CheckPassword;
 use App\Exceptions\InvalidParamError;
@@ -21,7 +23,8 @@ class SavePasswordController extends Controller
     public function __construct(
         private readonly TokenDecrypter $tokenDecrypter,
         private readonly FindAccount $findAccount,
-        private readonly CheckPassword $checkPassword
+        private readonly CheckPassword $checkPassword,
+        private readonly AddPassword $addPassword
     ) {
     }
 
@@ -65,6 +68,8 @@ class SavePasswordController extends Controller
             if ($this->checkPassword->check(new FindPasswordModel($accountModel->getId(), $account, $domain))) {
                 return HttpHelpers::badRequest(new PasswordAccountExistsError($account, $domain));
             }
+
+            $this->addPassword->add(new AddPasswordModel($account, $password, $domain, $accountModel->getId()));
 
             return HttpHelpers::success('success');
         } catch (Throwable $e) {
