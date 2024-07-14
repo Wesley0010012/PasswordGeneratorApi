@@ -3,6 +3,7 @@
 namespace Tests\Unit\Http\Controllers;
 
 use App\Domain\Models\AccountModel;
+use App\Domain\Models\AddPasswordModel;
 use App\Domain\Models\FindAccountModel;
 use App\Domain\Models\FindPasswordModel;
 use App\Domain\UseCases\AddPassword;
@@ -380,5 +381,32 @@ class SavePasswordControllerTest extends TestCase
         $this->assertEquals(500, $httpResponse->getStatusCode());
         $this->assertInstanceOf(InternalServerError::class, $httpResponse->getBody());
         $this->assertEquals($error->getMessage(), $httpResponse->getBody()->getMessage());
+    }
+
+    public function testShouldAddPassswordHaveBeenCalledWithCorrectAddPasswordModel()
+    {
+        $this->tokenDecrypterStub->method('decrypt')
+            ->willReturn($this->mockAccount());
+
+        $this->findAccountStub->method('getAccount')
+            ->willReturn($this->mockAccountModel());
+
+        $this->checkPasswordStub->method('check')
+            ->willReturn(false);
+
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'account' => 'any_email@email.com',
+            'password' => 'any_password',
+            'domain' => 'any_domain'
+        ]);
+
+        $this->addPasswordStub->expects($this->once())
+            ->method('add')
+            ->with(new AddPasswordModel($httpRequest->getBody()['account'], $httpRequest->getBody()['password'], $httpRequest->getBody()['domain'], ($this->mockAccountModel())->getId()));
+
+        $httpResponse = $this->sut->handle($httpRequest);
     }
 }
