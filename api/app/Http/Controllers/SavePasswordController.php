@@ -71,7 +71,10 @@ class SavePasswordController extends Controller
 
             $this->addPassword->add(new AddPasswordModel($account, $password, $domain, $accountModel->getId()));
 
-            return HttpHelpers::success('success');
+            return HttpHelpers::success([
+                "success" => true,
+                "message" => "password added with success"
+            ]);
         } catch (Throwable $e) {
             return HttpHelpers::internalServerError();
         }
