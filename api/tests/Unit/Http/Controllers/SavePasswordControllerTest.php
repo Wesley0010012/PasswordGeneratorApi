@@ -6,6 +6,7 @@ use App\Domain\Models\AccountModel;
 use App\Domain\Models\AddPasswordModel;
 use App\Domain\Models\FindAccountModel;
 use App\Domain\Models\FindPasswordModel;
+use App\Domain\Models\PasswordModel;
 use App\Domain\UseCases\AddPassword;
 use App\Domain\UseCases\CheckPassword;
 use App\Domain\UseCases\FindAccount;
@@ -407,6 +408,38 @@ class SavePasswordControllerTest extends TestCase
             ->method('add')
             ->with(new AddPasswordModel($httpRequest->getBody()['account'], $httpRequest->getBody()['password'], $httpRequest->getBody()['domain'], ($this->mockAccountModel())->getId()));
 
+        $this->sut->handle($httpRequest);
+    }
+
+    public function testShouldReturn200OnSuccess()
+    {
+        $this->tokenDecrypterStub->method('decrypt')
+            ->willReturn($this->mockAccount());
+
+        $this->findAccountStub->method('getAccount')
+            ->willReturn($this->mockAccountModel());
+
+        $this->checkPasswordStub->method('check')
+            ->willReturn(false);
+
+        $this->addPasswordStub->method('add')
+            ->willReturn(new PasswordModel());
+
+        $httpRequest = new HttpRequest();
+        $httpRequest->setBody([
+            'token' => 'any_token',
+            'account' => 'any_email@email.com',
+            'password' => 'any_password',
+            'domain' => 'any_domain'
+        ]);
+
         $httpResponse = $this->sut->handle($httpRequest);
+
+        $this->assertEquals(200, $httpResponse->getStatusCode());
+
+        $body = $httpResponse->getBody();
+
+        $this->assertEquals(true, $body['success']);
+        $this->assertEquals('password added with success', $body['message']);
     }
 }
