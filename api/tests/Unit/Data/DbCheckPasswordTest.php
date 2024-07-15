@@ -46,4 +46,13 @@ class DbCheckPasswordTest extends TestCase
 
         $this->sut->check($this->mockFindPasswordModel());
     }
+
+    public function testShouldCheckPasswordRepositoryHaveBeenCalledWithCorrectFindPasswordModel()
+    {
+        $this->checkPasswordRepositoryStub->expects($this->once())
+            ->method('findPasswordByModel')
+            ->with($this->mockFindPasswordModel());
+
+        $this->sut->check($this->mockFindPasswordModel());
+    }
 }
