@@ -67,4 +67,15 @@ class DbCheckPasswordTest extends TestCase
 
         $this->assertTrue($result);
     }
+
+    public function testShouldReturnFalseIfCheckPasswordRepositoryReturnsNull()
+    {
+        $this->checkPasswordRepositoryStub
+            ->method('findPasswordByModel')
+            ->willReturn(null);
+
+        $result = $this->sut->check($this->mockFindPasswordModel());
+
+        $this->assertFalse($result);
+    }
 }
