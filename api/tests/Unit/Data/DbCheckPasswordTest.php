@@ -5,6 +5,7 @@ namespace Tests\Unit\Data;
 use App\Data\Protocols\CheckPasswordRepository;
 use App\Data\UseCases\DbCheckPassword;
 use App\Domain\Models\FindPasswordModel;
+use App\Domain\Models\PasswordModel;
 use Error;
 use Tests\TestCase;
 
@@ -54,5 +55,16 @@ class DbCheckPasswordTest extends TestCase
             ->with($this->mockFindPasswordModel());
 
         $this->sut->check($this->mockFindPasswordModel());
+    }
+
+    public function testShouldReturnTrueIfCheckPasswordRepositoryReturnsAnPasswordModel()
+    {
+        $this->checkPasswordRepositoryStub
+            ->method('findPasswordByModel')
+            ->willReturn(new PasswordModel());
+
+        $result = $this->sut->check($this->mockFindPasswordModel());
+
+        $this->assertTrue($result);
     }
 }
