@@ -22,7 +22,7 @@ class DbAddPasswordTest extends TestCase
         );
     }
 
-    private function mockPasswordModel()
+    private function mockAddPasswordModel()
     {
         return new AddPasswordModel('valid_password_account', 'valid_password', 'valid_domain', 1);
     }
@@ -39,6 +39,17 @@ class DbAddPasswordTest extends TestCase
 
         $this->expectException(Error::class);
 
-        $this->sut->add($this->mockPasswordModel());
+        $this->sut->add($this->mockAddPasswordModel());
+    }
+
+    public function testShouldEncrypterHaveBeenCalledWithCorrectPassword()
+    {
+        $passwordModel = $this->mockAddPasswordModel();
+
+        $this->encrypterStub->expects($this->once())
+            ->method('encrypt')
+            ->with($passwordModel->getPassword());
+
+        $this->sut->add($passwordModel);
     }
 }
