@@ -49,6 +49,11 @@ class DbAddPasswordTest extends TestCase
         return $passwordModel;
     }
 
+    private function mockId()
+    {
+        return 1;
+    }
+
     public function testEnsureCorrectInstance()
     {
         $this->assertInstanceOf(DbAddPassword::class, $this->sut);
@@ -102,5 +107,26 @@ class DbAddPasswordTest extends TestCase
             ->with($this->mockPasswordModel($passwordModel));
 
         $this->sut->add($passwordModel);
+    }
+
+    public function testShouldAnPasswordModelOnSuccess()
+    {
+        $addPasswordModel = $this->mockAddPasswordModel();
+
+        $this->encrypterStub->method('encrypt')
+            ->willReturn($this->mockEncryptedPassword());
+
+        $passwordModel = $this->mockPasswordModel($addPasswordModel);
+
+        $this->addPasswordRepositoryStub->method('add')
+            ->willReturn($this->mockId());
+
+        $result = $this->sut->add($addPasswordModel);
+
+        $this->assertEquals($result->getId(), $this->mockId());
+        $this->assertEquals($passwordModel->getAccountId(), $result->getId());
+        $this->assertEquals($passwordModel->getPasswordAccount(), $result->getPasswordAccount());
+        $this->assertEquals($passwordModel->getPassword(), $result->getPassword());
+        $this->assertEquals($passwordModel->getDomain(), $result->getDomain());
     }
 }
