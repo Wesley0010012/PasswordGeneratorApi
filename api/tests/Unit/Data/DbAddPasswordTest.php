@@ -6,6 +6,7 @@ use App\Data\Protocols\AddPasswordRepository;
 use App\Data\Protocols\Encrypter;
 use App\Data\UseCases\DbAddPassword;
 use App\Domain\Models\AddPasswordModel;
+use App\Domain\Models\PasswordModel;
 use Error;
 use Tests\TestCase;
 
@@ -35,6 +36,17 @@ class DbAddPasswordTest extends TestCase
     private function mockEncryptedPassword()
     {
         return 'hashed_password';
+    }
+
+    private function mockPasswordModel(AddPasswordModel $addPasswordModel)
+    {
+        $passwordModel = new PasswordModel();
+        $passwordModel->setPasswordAccount($addPasswordModel->getPasswordAccount());
+        $passwordModel->setPassword($this->mockEncryptedPassword());
+        $passwordModel->setDomain($addPasswordModel->getDomain());
+        $passwordModel->setAccountId($addPasswordModel->getAccountId());
+
+        return $passwordModel;
     }
 
     public function testEnsureCorrectInstance()
@@ -74,6 +86,20 @@ class DbAddPasswordTest extends TestCase
             ->willThrowException(new Error());
 
         $this->expectException(Error::class);
+
+        $this->sut->add($passwordModel);
+    }
+
+    public function testShouldAddPasswordRepositoryHaveBeenCalledWithCorrectPasswordModel()
+    {
+        $passwordModel = $this->mockAddPasswordModel();
+
+        $this->encrypterStub->method('encrypt')
+            ->willReturn($this->mockEncryptedPassword());
+
+        $this->addPasswordRepositoryStub->expects($this->once())
+            ->method('add')
+            ->with($this->mockPasswordModel($passwordModel));
 
         $this->sut->add($passwordModel);
     }
